@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">E52</string>
+    <string name="message">Watch face tapped</string>
+    <string name="my_digital_name">Electronica 52</string>
+    <string name="title_activity_e52_fservice_config">Settings</string>
+    <string name="hello_round">Configuration ELECTRONICA 52</string>
+    <string name="hello_square">Configuration ELECTRONICA 52</string>
+    <string name="digital_am">AM</string>
+    <string name="digital_pm">PM</string>
+    <string name="fit_steps">%1$d</string>
+    <string name="title_activity_e52_config">E52Config</string>
+    <string name="timer_done">Timer done</string>
+    <string name="timer_restart">Restart</string>
+    <string name="alarm_set_done">E-52 Будильник</string>
+    <string name="timer_set_str">E-52 Яйцетаймер</string>
+    <string name="title_activity_advanced_list">AdvancedListActivity</string>
+    <string name="hello_world">Hello World!</string>
+    <string name="no_message">no message</string>
+    <string name="no_message_info">No message received yet</string>
+</resources>

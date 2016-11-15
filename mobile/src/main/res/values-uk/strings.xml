@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">E52 ЕЛЕКТРОНІКА</string>
+    <string name="next">СЛЕДУЮЩИЙ</string>
+    <string name="play_again">Знову</string>
+    <string name="play_again_desc">Для того, щоб ще раз передивитись Допомогу, натисни Знову</string>
+    <string name="skip">Пропустити</string>
+    <string name="slide_1_desc">Легкий спосіб спробувати Електроніка 52 на руці</string>
+    <string name="slide_1_title">Спробуй Електроніку 52</string>
+    <string name="slide_2_desc">Червоним підсвічеі області, що відповідають за кнопки. Вони такі ж як і в оригінала</string>
+    <string name="slide_2_title">Всі екрани інтерактивні</string>
+    <string name="slide_3_desc">будильник, секундомір, таймер - як в старі добрі часи</string>
+    <string name="slide_3_title">Екрани як колись.</string>
+    <string name="slide_4_desc">Цей екран замінив екран календаря. Часи змінюються і годинник змінюється також</string>
+    <string name="slide_4_title">Додамо трохи нового</string>
+    <string name="start">Зрозумів</string>
+    <string name="title_activity_splash_fullscreen">E52 ЕЛЕКТРОНІКА</string>
+</resources>

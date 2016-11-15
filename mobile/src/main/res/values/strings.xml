@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">E52</string>
+
+    <string name="title_activity_splash_fullscreen">E52</string>
+    <string name="next">NEXT</string>
+    <string name="skip">SKIP</string>
+    <string name="start">GOT IT</string>
+
+    <string name="slide_1_title">Say Hello \n Electronica 52!</string>
+    <string name="slide_1_desc">The easiest way to taste \n old school LCD watch \n Electronica 52 !</string>
+
+    <string name="slide_2_title">All clock face are  \n interactive!</string>
+    <string name="slide_2_desc">Highlighted in red are interactive zone. \n They correspond to the buttons of the old LCD watch</string>
+
+    <string name="slide_3_title">Dials as at old school LCD</string>
+    <string name="slide_3_desc"> alarm clock, stopwatch, timer \n just like in the good old days </string>
+
+    <string name="slide_4_title">Add a little modern data</string>
+    <string name="slide_4_desc">This screen has replaced the calendar screen of original hours, \n times are changing and the clock changes with them  </string>
+
+    <string name="play_again_desc">To see the welcome screen again, press  Play Again </string>
+    <string name="play_again">Play Again</string>
+    <string name="set_alarm_button">Set Alarm</string>
+    <string name="set_timer_button">Set Timer</string>
+    <string name="timerworkspace">Everyday</string>
+    <string name="categoryinworkspace0">Egg</string>
+    <string name="categoryinworkspace1">Pomodoro</string>
+    <string name="timers0categoryinworkspace1">"Concentrate on work "</string>
+    <string name="timers1categoryinworkspace1">Time to relax</string>
+    <string name="categoryinworkspace2">GeekFit</string>
+    <string name="timers0categoryinworkspace2">Workout</string>
+    <string name="timers1categoryinworkspace2">Rest</string>
+    <string name="timers2categoryinworkspace2">Preparation</string>
+
+    <!-- TimePicker - accessibility support -->
+    <!-- Description of the button to increment the TimePicker's minute value. [CHAR LIMIT=NONE] -->
+    <string name="time_picker_increment_minute_button">Increment minute</string>
+    <!-- Description of the button to decrement the TimePicker's minute value. [CHAR LIMIT=NONE] -->
+    <string name="time_picker_decrement_minute_button">Decrement minute</string>
+    <!-- Description of the button to increment the TimePicker's hour value. [CHAR LIMIT=NONE] -->
+    <string name="time_picker_increment_hour_button">Increment hour</string>
+    <!-- Description of the button to decrement the TimePicker's hour value. [CHAR LIMIT=NONE] -->
+    <string name="time_picker_decrement_hour_button">Decrement hour</string>
+    <!-- Description of the button to increment the TimePicker's set PM value. [CHAR LIMIT=NONE] -->
+    <string name="time_picker_increment_set_pm_button">Set PM</string>
+    <!-- Description of the button to decrement the TimePicker's set AM value. [CHAR LIMIT=NONE] -->
+    <string name="time_picker_decrement_set_am_button">Set AM</string>
+
+    <!-- @hide DO NOT TRANSLATE. Separator between the hour and minute elements in a TimePicker widget -->
+    <string name="time_picker_separator">:</string>
+
+</resources>
