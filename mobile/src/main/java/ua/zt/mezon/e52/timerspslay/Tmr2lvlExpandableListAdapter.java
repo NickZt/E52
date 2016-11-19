@@ -297,6 +297,11 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         return data.get(position).type;
     }
 
+//    @Override
+//    public void registerAdapterDataObserver(RecyclerView.AdapterDataObserver observer) {
+//        super.registerAdapterDataObserver(observer);
+//    }
+
     @Override
     public int getItemCount() {
         return data.size();
@@ -381,54 +386,17 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                             break;
                         }
                         case CM_SET_ACTIVE: {
-                            for (TimersCategoryInWorkspace tmp:
-                                    indata) {
-                                tmp.active=false;
-                            }
-                            indata.get(mCurrItem.id).active=true;
-                            refreshInternalData(indata);
+                            cm_SetActiveItemInHeader();
 
                         }
                             break;
 
                         case CM_ADD: {
-//                    if (SHOW_DEBUG)   Toast.makeText(getContext(), "Выбран пункт ADD POI", Toast.LENGTH_LONG)
-//                            .show();
-//                    if (SHOW_DEBUG)   Toast.makeText( getContext(), "ADDPOI>"+mPOIItem.toString(), Toast.LENGTH_SHORT).show();
-//                    Cicer_poi tmpItem = new Cicer_poi();
-//                    tmpItem.setCat(mPOIItem.getCat());
-//                    tmpItem.setName("Zhukova "+"sometext proba ");
-//                    tmpItem.setLang(50.280992525335744);
-//                    tmpItem.setLongit(28.619921183714403);
-//                    tmpItem.setWhs(221);
-//                    tmpItem.setAlt( 2123);
-//                    tmpItem.setBearing(221);
-//                    tmpItem.setSpeed(22233);
-//                    tmpItem.setSale_id(R.mipmap.ic_launcher);
-//                    tmpItem.setiddecor(R.mipmap.ic_launcher);
-//
-////                       try {
-////                           tmpItem=   dbWclass.addPOIs( tmpItem);
-////                       } catch (IOException e) {
-////                           e.printStackTrace();
-////                       }
-////
-////                       poi.add( tmpItem);
-//                    //   adapter.notifyItemInserted(mPOIpos);
-//                    // adapter.notifyItemRemoved(mPOIItem);
-//                    dbWclass.load_INIT_JSON();
-//                    dbWclass.For_Detail_DataAdapterInternalRescan();
-//
-//                    poiRescan();
-//
-//                    //   DataAdapter.notifyDataSetChanged();
-//                    //  adapter.notifyDataSetChanged();// DataAdapter.notifyItemRemoved(mPOIpos);
-//                    //adapter.notifyItemRemoved(mPOIItem);
 
 
-
-                            break;
                         }
+                            break;
+
                     }
 
 
@@ -458,7 +426,8 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
             menu.getMenu().add(0, CM_DELETE, 0, R.string.menu_Delete)
                     .setIcon(R.drawable.ic_andr_cross)
-                    .setOnMenuItemClickListener(this);
+                    .setOnMenuItemClickListener(this)
+                    .setEnabled(indata.get(mCurrItem.id).timersTimes.isEmpty());
 
             menu.getMenu().add(0, CM_ADD, 0, R.string.menu_add)
                     .setIcon(android.R.drawable.sym_contact_card)
@@ -470,21 +439,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
             switch (item.getItemId())  {
                 case CM_DELETE: {
-//                    if (SHOW_DEBUG)   Toast.makeText(getContext(), "Выбран пункт DELETE", Toast.LENGTH_LONG)
-//                            .show();
-//                    if (SHOW_DEBUG)   Toast.makeText( getContext(), "Delete POI>"+mPOIItem.toString(), Toast.LENGTH_SHORT).show();
-//                    try {
-//                        dbWclass.delPOIs(mPOIItem);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                    poi.remove(mPOIItem);
-//                    dbWclass.load_INIT_JSON();
-//                    dbWclass.For_Detail_DataAdapterInternalRescan();
-//                    poiRescan();
-//                    adapter.notifyDataSetChanged();
-//                    // adapter.notifyItemRemoved(mPOIpos);// DataAdapter.notifyItemRemoved(mPOIpos);
-//                    //adapter.notifyItemRemoved(mPOIItem);
+
 
                     break;
                 }
@@ -497,12 +452,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     break;
                 }
                 case CM_SET_ACTIVE: {
-                    for (TimersCategoryInWorkspace tmp:
-                         indata) {
-                        tmp.active=false;
-                    }
-                    indata.get(mCurrItem.id).active=true;
-refreshInternalData(indata);
+                    cm_SetActiveItemInHeader();
                     break;
                 }
                 case CM_ADD: {
@@ -552,6 +502,24 @@ refreshInternalData(indata);
             return true;
         }
 
+        private void cm_SetActiveItemInHeader() {
+            for (TimersCategoryInWorkspace tmp:
+                 indata) {
+                tmp.active=false;
+            }
+            indata.get(mCurrItem.id).active=true;
+            refreshInternalData(indata);
+        }
+        private void cm_DeleteItemInHeader() { //if not empty no del
+            if (indata.get(mCurrItem.id).timersTimes.isEmpty() ) {
+                indata.remove(mCurrItem.id);
+                refreshInternalData(indata);
+            }
+
+
+
+        }
+
         @Override
         public void onClick(View view) {
 
@@ -566,10 +534,7 @@ refreshInternalData(indata);
             menu.setHeaderTitle("Timers Header Menu ");
 //            // TODO: 15.11.2016 link header to headers name & add timspace name
             menu.setHeaderIcon(android.R.drawable.ic_menu_compass);
-//            } else {
-//                menu.setHeaderIcon(android.R.drawable.ic_menu_myplaces);
-//                menu.setHeaderTitle("Cat N > "+ ""+ Integer.toString(iTMPcatind)+  " Cat Pos >"+ dbWclass.data_Cat.get(iTMPcatind).getName()+"POI pos>"+Integer.toString(mPOIpos)) ;
-//            }
+
             menu.add(0, CM_SET_ACTIVE, 0,R.string.menu_active)
                     .setIcon(android.R.drawable.btn_star_big_on)
                     .setOnMenuItemClickListener(this);
@@ -580,7 +545,8 @@ refreshInternalData(indata);
 
             menu.add(0, CM_DELETE, 0, R.string.menu_Delete)
                     .setIcon(R.drawable.ic_andr_cross)
-                    .setOnMenuItemClickListener(this);
+                    .setOnMenuItemClickListener(this)
+                    .setEnabled(indata.get(mCurrItem.id).timersTimes.isEmpty());
 
             menu.add(0, CM_ADD, 0, R.string.menu_add)
                     .setIcon(android.R.drawable.sym_contact_card)
@@ -673,172 +639,3 @@ refreshInternalData(indata);
 
 
 
-
-
-/*
-public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-    class ViewHolder0 extends RecyclerView.ViewHolder {
-        public ViewHolder0(View itemView) {
-            super(itemView);
-        }
-        //...
-    }
-
-    class ViewHolder2 extends RecyclerView.ViewHolder {
-        public ViewHolder2(View itemView) {
-            super(itemView);
-        }
-        //  ...
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        // Just as an example, return 0 or 2 depending on position
-        // Note that unlike in ListView adapters, types don't have to be contiguous
-        return position % 2 * 2;
-    }
-
-    @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        switch (viewType) {
-            case 0: return new ViewHolder0();
-            case 2: return new ViewHolder2();
-           // ...
-            default: return new ViewHolder2();
-        }
-    }
-
-    public class Sample1Binder extends DataBinder<Sample1Binder.ViewHolder> {
-
-        private List<String> mDataSet = new ArrayList();
-
-        public Sample1Binder(DataBindAdapter dataBindAdapter) {
-            super(dataBindAdapter);
-        }
-
-        @Override
-        public ViewHolder newViewHolder(ViewGroup parent) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(
-                    R.layout.layout_sample1, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void bindViewHolder(ViewHolder holder, int position) {
-            String title = mDataSet.get(position);
-            holder.mTitleText.setText(title);
-        }
-
-        @Override
-        public int getItemCount() {
-            return mDataSet.size();
-        }
-
-        public void setDataSet(List<String> dataSet) {
-            mDataSet.addAll(dataSet);
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-
-            TextView mTitleText;
-
-            public ViewHolder(View view) {
-                super(view);
-                mTitleText = (TextView) view.findViewById(R.id.title_type1);
-            }
-        }
-    }
-    public class ViewHolder extends RecyclerView.ViewHolder{
-
-        //These are the general elements in the RecyclerView
-        public TextView place;
-        public ImageView pics;
-
-        //This is the Header on the Recycler (viewType = 0)
-        public TextView name, description;
-
-        //This constructor would switch what to findViewBy according to the id of viewType
-        public ViewHolder(View v, int viewType) {
-            super(v);
-            if (viewType == 0) {
-                name = (TextView) v.findViewById(R.id.name);
-                decsription = (TextView) v.findViewById(R.id.description);
-            } else if (viewType == 1) {
-                place = (TextView) v.findViewById(R.id.place);
-                pics = (ImageView) v.findViewById(R.id.pics);
-            }
-        }
-    }
-
-
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent,
-                                         int viewType)
-    {
-        View v;
-        ViewHolder vh;
-        // create a new view
-        switch (viewType) {
-            case 0: //This would be the header view in my Recycler
-                v = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.recyclerview_welcome, parent, false);
-                vh = new ViewHolder(v,viewType);
-                return  vh;
-            default: //This would be the normal list with the pictures of the places in the world
-                v = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.recyclerview_picture, parent, false);
-                vh = new ViewHolder(v, viewType);
-                v.setOnClickListener(new View.OnClickListener(){
-
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(mContext, nextActivity.class);
-                        intent.putExtra("ListNo",mRecyclerView.getChildPosition(v));
-                        mContext.startActivity(intent);
-                    }
-                });
-                return vh;
-        }
-    }
-
-    //Overriden so that I can display custom rows in the recyclerview
-    @Override
-    public int getItemViewType(int position) {
-        int viewType = 1; //Default is 1
-        if (position == 0) viewType = 0; //if zero, it will be a header view
-        return viewType;
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        //position == 0 means its the info header view on the Recycler
-        if (position == 0) {
-            holder.name.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(mContext,"name clicked", Toast.LENGTH_SHORT).show();
-                }
-            });
-            holder.description.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(mContext,"description clicked", Toast.LENGTH_SHORT).show();
-                }
-            });
-            //this means it is beyond the headerview now as it is no longer 0. For testing purposes, I'm alternating between two pics for now
-        } else if (position > 0) {
-            holder.place.setText(mDataset[position]);
-            if (position % 2 == 0) {
-                holder.pics.setImageDrawable(mContext.getResources().getDrawable(R.drawable.pic1));
-            }
-            if (position % 2 == 1) {
-                holder.pics.setImageDrawable(mContext.getResources().getDrawable(R.drawable.pic2));
-            }
-
-        }
-    }
-
-    private class DataBinder<T> {
-    }
-}*/

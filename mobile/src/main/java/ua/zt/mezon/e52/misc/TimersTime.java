@@ -13,4 +13,6 @@ public class TimersTime {
     // String nextname;
     public int nextid;
     public boolean active;
+    public int typeTimerBehavior=0; // 0-normal 1 vibrate every second 2silent)
+    public int idDescription=0; //
 }

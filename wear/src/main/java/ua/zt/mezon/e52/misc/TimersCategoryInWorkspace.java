@@ -10,6 +10,7 @@ public class TimersCategoryInWorkspace {
     public int id;
     public String sTmrCategorySymbol; // Character.toString((char) 731); // Таймер помидоро
     public ArrayList<TimersTime> timersTimes;
+    public int idDescription=0; //
     public boolean active;
 
 }

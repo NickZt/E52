@@ -88,13 +88,13 @@ public class AdvancedListActivity extends Activity implements WearableListView.C
         @Override
         public void onBindViewHolder(WearableListView.ViewHolder viewHolder, int i) {
             MyItemView itemView = (MyItemView) viewHolder.itemView;
-
-            TextView txtView = (TextView) itemView.findViewById(R.id.text);
-            txtView.setText(String.format("Item %d", i));
+//            itemView. txtView
+//            TextView txtView = (TextView) itemView.findViewById(R.id.text);
+            itemView.txtView.setText(String.format("Item %d", i));
 
             Integer resourceId = listItems.get(i);
-            CircledImageView imgView = (CircledImageView) itemView.findViewById(image);
-            imgView.setImageResource(resourceId);
+//            CircledImageView imgView = (CircledImageView) itemView.findViewById(image);
+            itemView.imgView.setImageResource(resourceId);
         }
 
         @Override
@@ -130,8 +130,8 @@ public class AdvancedListActivity extends Activity implements WearableListView.C
         public MyItemView(Context context) {
             super(context);
             View.inflate(context, R.layout.row_advanced_item_layout, this);
-            imgView = (CircledImageView) findViewById(image);
-            txtView = (TextView) findViewById(R.id.text);
+            imgView = (CircledImageView) findViewById(R.id.image);
+            txtView = (TextView) findViewById(R.id.name);
             mFadedCircleColor = getResources().getColor(android.R.color.darker_gray);
             mChosenCircleColor = getResources().getColor(android.R.color.holo_blue_dark);
 
