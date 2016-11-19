@@ -21,7 +21,7 @@
     <string name="play_again_desc">To see the welcome screen again, press  Play Again </string>
     <string name="play_again">Play Again</string>
     <string name="set_alarm_button">Set Alarm</string>
-    <string name="set_timer_button">Set Timer</string>
+    <string name="add_timerworkspace_button">...</string>
     <string name="timerworkspace">Everyday</string>
     <string name="categoryinworkspace0">Egg</string>
     <string name="categoryinworkspace1">Pomodoro</string>
@@ -45,8 +45,13 @@
     <string name="time_picker_increment_set_pm_button">Set PM</string>
     <!-- Description of the button to decrement the TimePicker's set AM value. [CHAR LIMIT=NONE] -->
     <string name="time_picker_decrement_set_am_button">Set AM</string>
-
+    <string name="save_all_timers_categories">Save All timers data </string>
     <!-- @hide DO NOT TRANSLATE. Separator between the hour and minute elements in a TimePicker widget -->
     <string name="time_picker_separator">:</string>
+    <string name="menu_Delete">"Delete "</string>
+    <string name="menu_edit">"Edit  "</string>
+    <string name="menu_add"><![CDATA[Copy & Add this]]></string>
+    <string name="menu_active">Set active</string>
+
 
 </resources>

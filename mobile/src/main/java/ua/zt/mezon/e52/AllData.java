@@ -65,7 +65,7 @@ public class AllData {
             loadTimersFromPrefs();
         } else {
             iniTimersFirstTime();
-            saveTimersToPrefs();
+            setAlTimersCategories(alTimersCategories);
         }
     }
 
@@ -217,14 +217,27 @@ public class AllData {
         tmp.active = active;
         return tmp;
     }
+public String convertALTimerWorkspace (ArrayList<TimerWorkspace> tmp){
+    Type listOfConvertObject = new TypeToken<ArrayList<TimerWorkspace>>(){}.getType();
+    Gson gson = new Gson();
+    return gson.toJson(tmp,listOfConvertObject);
+
+}
+    public ArrayList<TimerWorkspace> convertStringToALTimerWorkspace (String tmp){
+        // load timer tasks from preference
+        Type listOfTestObject = new TypeToken<ArrayList<TimerWorkspace>>(){}.getType();
+        Gson gson = new Gson();
+        return ( ArrayList<TimerWorkspace>)  gson.fromJson(tmp, listOfTestObject);
+
+    }
+
+
 
 
     private void saveTimersToPrefs() {
 // save timer tasks to preference
-        Type listOfTestObject = new TypeToken<ArrayList<TimerWorkspace>>(){}.getType();
-        Gson gson = new Gson();
-        String json = gson.toJson(alTimersCategories,listOfTestObject);
-        editor.putString(IS_TIMERCATEGORIES, json);
+
+        editor.putString(IS_TIMERCATEGORIES, convertALTimerWorkspace(alTimersCategories));
         editor.commit();
 
 
@@ -239,18 +252,10 @@ public class AllData {
 
     private void loadTimersFromPrefs() {
         // load timer tasks from preference
-        Type listOfTestObject = new TypeToken<ArrayList<TimerWorkspace>>(){}.getType();
-        Gson gson = new Gson();
+
         String json = pref.getString(IS_TIMERCATEGORIES, "");
-        ArrayList<TimerWorkspace> obj = gson.fromJson(json, listOfTestObject);
-        alTimersCategories= obj ;
+        alTimersCategories= convertStringToALTimerWorkspace(json) ;
 
-
-//        try {
-//            alTimersCategories = (ArrayList<TimerWorkspace>) ObjectSerializer.deserialize(pref.getString(IS_TIMERCATEGORIES, ObjectSerializer.serialize(new ArrayList<TimerWorkspace>())));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
 
@@ -263,5 +268,19 @@ public class AllData {
     public void setAlTimersCategories(ArrayList<TimerWorkspace> alTimersCategories) {
         this.alTimersCategories = alTimersCategories;
         saveTimersToPrefs();
+
+        rxWear.message().sendDataMapToAllRemoteNodes("/dataMap")
+                .putString("timers", "TimersCategories")
+                .putString("alTimersCategories", convertALTimerWorkspace(alTimersCategories))
+                .toObservable()
+                .subscribe(requestId -> {
+            /* do something */
+                });
+
+    }
+    public void setAlTimersCategoriesFromWear(ArrayList<TimerWorkspace> alTimersCategories) {
+        this.alTimersCategories = alTimersCategories;
+        saveTimersToPrefs();
+
     }
 }

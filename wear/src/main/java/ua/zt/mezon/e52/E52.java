@@ -68,6 +68,9 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import rx.subscriptions.CompositeSubscription;
+import ua.zt.mezon.e52.misc.TimerWorkspace;
+import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
+import ua.zt.mezon.e52.misc.TimersTime;
 
 
 /**
@@ -99,7 +102,7 @@ public class E52 extends CanvasWatchFaceService {
     private static final String STRING_PHONE_BATT =Character.toString((char) 59); // батарея телефон
     private static final String STRING_FIT_PEDESTRIAN =Character.toString((char) 40); // Fit пешеход шаги
     private static final String STRING_FIT_PEDESTRIAN_REACH_TARGET =Character.toString((char) 711); // Fit пешеход шаги дошагал
-    private static final String STRING_TIMER = Character.toString((char) 82); // Таймер пес часы
+    private  String string_TIMER = Character.toString((char) 82); // Таймер пес часы
     private static final String STRING_POMODORO_TIMER = Character.toString((char) 731); // Таймер помидоро
     private static final String STRING_TABATA_TIMER = Character.toString((char) 711); // Таймер табата спарта
     private static final String STRING_BUTT_TIMER =Character.toString((char) 225); // // сидячий таймер Character.toString((char) 337)
@@ -163,6 +166,8 @@ public class E52 extends CanvasWatchFaceService {
         long lStopwatchTimeMls = 0;
         long lStopwatchInbetweenTimeMls = 0;
         long lAlarmTimeMls = 0;
+        int[] ialTimersCategoriesActiveLvls = new int[3];
+
         long lTimerSetTimeMls = TimeUnit.SECONDS.toMillis(20) + TimeUnit.MINUTES.toMillis(3);
         long lCurrentTimerEndTimeMls = 0;
         long lCurrentTimerInbetweenEndTimeMls = 0;
@@ -230,19 +235,98 @@ public class E52 extends CanvasWatchFaceService {
         private float mYFitOffset;
         private AlarmManager alarmManager;
         private AllData allData = AllData.getInstance();
+        private ArrayList<TimerWorkspace> alTimersCategories;
+
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
             mStepsRequested = false;
             mStepsRequested = false;
             allData.iniPrefManager(getApplicationContext());
+            if ( !allData.isFirstTimeLaunch()) {
+                alTimersCategories=  allData.getAlTimersCategories();
+
+                for (TimerWorkspace tmp:
+                        alTimersCategories) {
+                    if (tmp.active) {
+                        ialTimersCategoriesActiveLvls[0]=tmp.id;
+                        for (TimersCategoryInWorkspace tmp1:
+                                tmp.alTimersCategoryInWorkspace) {
+                            if (tmp1.active) {
+                                ialTimersCategoriesActiveLvls[1]=tmp1.id;
+                                string_TIMER=tmp1.sTmrCategorySymbol;
+                                for (TimersTime tmp2:
+                                        tmp1.timersTimes) {
+                                    if (tmp2.active) {
+                                        ialTimersCategoriesActiveLvls[2] = tmp2.id;
+                                        lTimerSetTimeMls = tmp2.time;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+            }
             rxWear = new RxWear(getApplicationContext());
+//            // TODO: 15.11.2016 Rx Wear
+//            //start rx part
             subscription.add(rxWear.message().listen("/message", MessageApi.FILTER_PREFIX)
                     .compose(MessageEventGetDataMap.noFilter())
                     .subscribe(dataMap -> {
-                        lAlarmTimeMls=dataMap.getLong("alarm");
-                    }, throwable -> Toast.makeText(getApplicationContext(), "Error on message listen", Toast.LENGTH_LONG)));
+                        if  (dataMap.containsKey("alarm")) {
+                            lAlarmTimeMls=dataMap.getLong("alarm");
+                            Toast.makeText(getApplicationContext(), String.valueOf( lAlarmTimeMls), Toast.LENGTH_SHORT).show();
+                        }
 
+
+                    }, throwable -> Toast.makeText(getApplicationContext(), "Error on message listen", Toast.LENGTH_SHORT).show()));
+
+            rxWear.message().listen("/dataMap", MessageApi.FILTER_LITERAL)
+                    .compose(MessageEventGetDataMap.noFilter())
+                    .subscribe(dataMap -> {
+                       // String title = dataMap.getString("title", getString(R.string.no_message));
+                       if  (dataMap.containsKey("alTimersCategories")) {
+                            String json = dataMap.getString("alTimersCategories");
+                           alTimersCategories=  allData.convertStringToALTimerWorkspace(json);
+                           allData.setAlTimersCategories(alTimersCategories);
+                           allData.setFirstTimeLaunch(false);
+                            Toast.makeText(getApplicationContext(), "Timers arrived", Toast.LENGTH_SHORT).show();
+                           for (TimerWorkspace tmp:
+                                alTimersCategories) {
+                              if (tmp.active) {
+                                  ialTimersCategoriesActiveLvls[0]=tmp.id;
+                                  for (TimersCategoryInWorkspace tmp1:
+                                          tmp.alTimersCategoryInWorkspace) {
+                                      if (tmp1.active) {
+                                          ialTimersCategoriesActiveLvls[1]=tmp1.id;
+                                          string_TIMER=tmp1.sTmrCategorySymbol;
+                                          for (TimersTime tmp2:
+                                                  tmp1.timersTimes) {
+                                              if (tmp2.active) {
+                                                  ialTimersCategoriesActiveLvls[2] = tmp2.id;
+                                                  lTimerSetTimeMls = tmp2.time;
+                                              }
+                                          }
+
+                                      }
+                                  }
+                              }
+                           }
+//
+//                           long lTimerSetTimeMls = TimeUnit.SECONDS.toMillis(20) + TimeUnit.MINUTES.toMillis(3);
+//                           long lCurrentTimerEndTimeMls = 0;
+//                           long lCurrentTimerInbetweenEndTimeMls = 0;
+
+
+
+                        }
+
+            /* do timersss */
+
+                    });
+//end rx part
             mGoogleApiClient = new GoogleApiClient.Builder(E52.this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
@@ -985,9 +1069,9 @@ public class E52 extends CanvasWatchFaceService {
                     if (!bStopwatchTimeStartStop && lStopwatchTimeMls != 0) {
                         canvas.drawText(STRING_STOPWATCH_STOP, mXOffsetColonHM - mColonWidth / 4, mYOffsetStatusSymb, mStatusSymbPaint);// Секундомер
                     }
-                    if (!bButtTimerStartStop && lButtCurrentTimerEndTimeMls != 0) {
-                        canvas.drawText(STRING_BUTT_TIMER, mXCalendDayOffset + mColonWidth / 4, mYOffset - mColonWidth / 2, mStatusSymbPaint);// сидячий таймер
-                    }
+//                    if (bButtTimerStartStop && lButtCurrentTimerEndTimeMls != 0) {
+//                        canvas.drawText(STRING_BUTT_TIMER, mXCalendDayOffset + mColonWidth / 4, mYOffset - mColonWidth , mStatusSymbPaint);// сидячий таймер
+//                    }
                     if (bAlarmTimeStartStop) {
                         canvas.drawText(STRING_ALARM_CLOCK, mXOffset + mColonWidth / 3, mYOffsetStatusSymb, mStatusSymbPaint); // будильник
                     }
@@ -1002,10 +1086,10 @@ public class E52 extends CanvasWatchFaceService {
                                 canvas.drawText(STRING_STOPWATCH_STOP, mXOffsetColonHM, mYOffsetStatusSymb, mStatusSymbPaint);
                             }
                             if (bTimerTimeStartStop) {
-                                canvas.drawText(STRING_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint);
+                                canvas.drawText(string_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint);
                             }
                             if (bButtTimerStartStop && lButtCurrentTimerEndTimeMls != 0) {
-                                canvas.drawText(STRING_BUTT_TIMER, mXCalendDayOffset + mColonWidth / 4, mYOffset - mColonWidth / 2, mStatusSymbPaint);// сидячий таймер
+                                canvas.drawText(STRING_BUTT_TIMER, mXCalendDayOffset + mColonWidth / 4,mYOffset - mColonWidth, mStatusSymbPaint);// сидячий таймер
                             }
                             mMultiplic++;
                             break;
@@ -1203,7 +1287,7 @@ public class E52 extends CanvasWatchFaceService {
                             case 0:
                                 canvas.drawText(STRING_COLON, mXOffsetColonHM, mYOffset, mColonPaint);
                                 if (bTimerTimeStartStop && tmpMillis != 0) {
-                                    canvas.drawText(STRING_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint); // таймер
+                                    canvas.drawText(string_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint); // таймер
                                 }
                                 mMultiplic++;
                                 break;
@@ -1214,7 +1298,7 @@ public class E52 extends CanvasWatchFaceService {
                         }
 //                         blinking symbols end
                     } else {
-                        canvas.drawText(STRING_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint); // таймер
+                        canvas.drawText(string_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint); // таймер
                     }
 
 //                    Timer  draw  end
@@ -1253,7 +1337,7 @@ public class E52 extends CanvasWatchFaceService {
 
                     //      canvas.drawText(Character.toString((char) 66), mXOffsetColonHM,  mYCalendDayOffset, mStatusSymbPaint);
 
-                    canvas.drawText(STRING_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint); // таймер
+                    canvas.drawText(string_TIMER, mXOffsetMinute + 2 * mColonWidth - mColonWidth / 2, mYOffsetStatusSymb, mStatusSymbPaint); // таймер
 
 
                     // Draw the minutes.
@@ -1449,7 +1533,15 @@ public class E52 extends CanvasWatchFaceService {
 
                 if (!points.isEmpty()) {
                     mStepsTotal = points.get(0).getValue(Field.FIELD_STEPS).asInt();
+
                     //  mStepsTotal = points.get(0).getValue(Field.FIELD_STEPS).asInt();
+//                    // TODO: 15.11.2016 -ж.. сидячий таймер переставлен
+                    lButtCurrentTimerEndTimeMls=mCalendar.getTimeInMillis()+lButtTimerSetTimeMls; // сделали шаг -ж.. сидячий таймер переставлен
+
+//                    long lButtTimerSetTimeMls = TimeUnit.SECONDS.toMillis(20) + TimeUnit.MINUTES.toMillis(30);
+//                    long lButtCurrentTimerEndTimeMls = 0;
+//                    long lButtCurrentTimerInbetweenEndTimeMls = 0;
+
                     Log.d(TAG, "steps updated: " + mStepsTotal);
                 }
             } else {

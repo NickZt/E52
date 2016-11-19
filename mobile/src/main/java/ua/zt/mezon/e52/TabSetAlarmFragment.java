@@ -29,14 +29,22 @@ public class TabSetAlarmFragment extends Fragment implements TimePicker.OnTimeCh
     Button mainActivitySetAlarmButton;
     private AllData allData = AllData.getInstance();
     long lSelTimeAlarm=0;
-    public CompositeSubscription subscription = new CompositeSubscription();
-    public Observable<Boolean> validator;
+    private CompositeSubscription subscription = new CompositeSubscription();
+    private Observable<Boolean> validator;
 
     public RxWear rxWear;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(subscription != null && !subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+        }
     }
 
     @Override
@@ -72,11 +80,11 @@ public class TabSetAlarmFragment extends Fragment implements TimePicker.OnTimeCh
               //  .flatMap(click2 -> validate())
 
                // .filter(isValid -> isValid)
-                .flatMap(valid ->  allData.rxWear.message().sendDataMapToAllRemoteNodes("/message")
-                        .putLong("alarm",  lSelTimeAlarm)
+                .flatMap(valid ->  rxWear.message().sendDataMapToAllRemoteNodes("/message")
+                        .putLong("alarm",  lSelTimeAlarm = TimeUnit.HOURS.toMillis(mainActivityTimePicker.getHour())+TimeUnit.MINUTES.toMillis(mainActivityTimePicker.getMinute()))
                        // .putString("message", messageEditText.getText().toString())
                         .toObservable()
-                ).subscribe(requestId -> Toast.makeText(view.getContext(), "Sent message", Toast.LENGTH_SHORT).show(),//.make(coordinatorLayout, "Sent message", Snackbar.LENGTH_LONG).show()
+                ).subscribe(requestId -> Toast.makeText(view.getContext(), "Sent message "+String.valueOf(lSelTimeAlarm), Toast.LENGTH_SHORT).show(),//.make(coordinatorLayout, "Sent message", Snackbar.LENGTH_LONG).show()
                         throwable -> {
                             Log.e("MainActivity", "Error on sending message", throwable);
 
@@ -97,6 +105,6 @@ public class TabSetAlarmFragment extends Fragment implements TimePicker.OnTimeCh
 
     @Override
     public void onTimeChanged(TimePicker timePicker,int hourOfDay, int minute) {
-        lSelTimeAlarm = TimeUnit.HOURS.toMillis(hourOfDay)+TimeUnit.HOURS.toMillis(minute);;
+        lSelTimeAlarm = TimeUnit.HOURS.toMillis(timePicker.getHour())+TimeUnit.MINUTES.toMillis(timePicker.getMinute());
     }
 }
