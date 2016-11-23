@@ -18,11 +18,14 @@ package ua.zt.mezon.e52;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,12 +34,16 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.provider.AlarmClock;
+import android.support.v4.app.NotificationCompat;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.DateFormat;
@@ -66,15 +73,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import rx.subscriptions.CompositeSubscription;
+import ua.zt.mezon.e52.core.MySpcIntentService;
+import ua.zt.mezon.e52.core.ServiceConnector;
 import ua.zt.mezon.e52.misc.TimerWorkspace;
 import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
 import ua.zt.mezon.e52.misc.TimersTime;
 
+import static android.app.PendingIntent.getService;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 
@@ -83,6 +91,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
  */
 public class E52 extends CanvasWatchFaceService {
+    private AlarmManager mSpcStateAlarmManager;
+    private PendingIntent mSpcStateChimePendingIntent, mSpcStateButtTimerPendingIntent, mSpcStateTimerPendingIntent;
     // Left and right dial supported types.
     private CompositeSubscription subscription = new CompositeSubscription();
 
@@ -123,6 +133,8 @@ public class E52 extends CanvasWatchFaceService {
     private Typeface NORMAL_TYPEFACE2, NORMAL_TYPEFACE3/*, NORMAL_TYPEFACE4, NORMAL_TYPEFACE5*/;
     private int iInFacesCount = 1;
 
+
+
     @Override
     public Engine onCreateEngine() {
         return new Engine();
@@ -151,10 +163,11 @@ public class E52 extends CanvasWatchFaceService {
     private class Engine extends CanvasWatchFaceService.Engine implements
             GoogleApiClient.ConnectionCallbacks,
             GoogleApiClient.OnConnectionFailedListener,
-            ResultCallback<DailyTotalResult>
-
+            ResultCallback<DailyTotalResult>,
+            ServiceConnector.ServiceListener<MySpcIntentService>
 
     {
+
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
@@ -167,6 +180,35 @@ public class E52 extends CanvasWatchFaceService {
                 invalidate();
             }
         };
+        final BroadcastReceiver mSpcStateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(TAG, "onReceive in mSpcStateReceiver");
+                Log.d(TAG, "action = " + intent.getAction());
+                Log.d(TAG, "extra = " + intent.getStringExtra("extra"));
+                Log.d(TAG, "mSpcStateReceiver onHandleIntent called with intent: " + intent);
+                switch (intent.getAction())
+                {
+                    case "Chimeaction":{
+
+                    }
+                    break;
+                    case "Timeraction":{
+                        Log.d(TAG, "action = " + intent.getAction());
+                        //  sendVibroMessage(5);
+                        //  sendClockMessage("String s1","String  s2");
+                    }
+                    break;
+                    case "ButtTimeraction":{
+
+                    }
+                    break;
+
+                }
+            }
+        };
+//        final SpcStateReceiver  = new abstract SpcStateReceiver() ;
+
         long lCurrPosmenuEndTimeMls = 0;
         long lStopwatchTimeMls = 0;
         long lStopwatchInbetweenTimeMls = 0;
@@ -220,6 +262,10 @@ public class E52 extends CanvasWatchFaceService {
         private String mPmString;
         private String tmpString;
         private String battLevString;
+        ServiceConnection sConn;
+        private MySpcIntentService mySpcIntentService;
+        Boolean servONduty = false;
+
         final BroadcastReceiver mBatteryInfoReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -239,28 +285,67 @@ public class E52 extends CanvasWatchFaceService {
         private int mStepsPlannedDaily = 0;
         private float mXStepsOffset;
         private float mYFitOffset;
-        private AlarmManager alarmManager;
         private AllData allData = AllData.getInstance();
         private ArrayList<TimerWorkspace> alTimersCategories;
 
         //
 
-        private Timer mTimer;
-        private PerodicSyncTimerTask mMyTimerTask;
+
 
 
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
+            MySpcIntentService.bindService(MySpcIntentService.class, getApplicationContext(), Engine.this);
             mStepsRequested = false;
             mStepsRequested = false;
             mCalendar = Calendar.getInstance();
             mCalendar.setFirstDayOfWeek(Calendar.MONDAY);
-            mTimer = new Timer();
-            mMyTimerTask = new PerodicSyncTimerTask();
-            //period set in INTERACTIVE_UPDATE_RATE_MS
-            mTimer.schedule(mMyTimerTask, INTERACTIVE_UPDATE_RATE_MS, INTERACTIVE_UPDATE_RATE_MS);
+//            timerssssssss
 
+//            alarmManager = (AlarmManager) E52.this.getSystemService(Context.ALARM_SERVICE);
+            mSpcStateAlarmManager = (AlarmManager) E52.this.getSystemService(Context.ALARM_SERVICE);
+//                    (AlarmManager)  getSystemService(Context.ALARM_SERVICE);
+
+
+            Intent spcStateChimeIntent =
+                    new Intent(getApplicationContext(), MySpcIntentService.class);//getApplicationContext(), MyIntentService.class
+            spcStateChimeIntent.setAction("Chimeaction");
+            spcStateChimeIntent.putExtra("extra","E52Chimeaction");
+            mSpcStateChimePendingIntent = PendingIntent.getService(
+                    getApplicationContext(),
+                    0,
+                    spcStateChimeIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+
+            Intent spcStateTimerIntent =
+                    new Intent(getApplicationContext(), MySpcIntentService.class);//MyIntentServiceMySpcIntentService
+            spcStateTimerIntent.setAction("Timeraction");
+            spcStateTimerIntent.putExtra("extra","E52StateTimer");
+            mSpcStateTimerPendingIntent = PendingIntent.getService(
+                    getApplicationContext(),
+                    1,
+                    spcStateTimerIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+//            mSpcStateTimerPendingIntent = PendingIntent.getBroadcast(
+//                    getApplicationContext(),
+//                    2,
+//                    spcStateTimerIntent,
+//                    PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent spcStateButtTimerIntent =
+                    new Intent(getApplicationContext(),MySpcIntentService.class);
+            spcStateButtTimerIntent.setAction("ButtTimeraction");
+
+
+            mSpcStateButtTimerPendingIntent = PendingIntent.getService(
+                    getApplicationContext(),
+                    3,
+                    spcStateButtTimerIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+
+// end timerss ini
             allData.iniPrefManager(getApplicationContext());
             if (!allData.isFirstTimeLaunch()) {
                 alTimersCategories = allData.getAlTimersCategories();
@@ -296,11 +381,48 @@ public class E52 extends CanvasWatchFaceService {
                     .subscribe(dataMap -> {
                         if (dataMap.containsKey("alarm")) {
                             lAlarmTimeMls = dataMap.getLong("alarm");
-                            Toast.makeText(getApplicationContext(), String.valueOf(lAlarmTimeMls), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Alarm at "+TimeInMilisToStr(lAlarmTimeMls), Toast.LENGTH_SHORT).show();
                         }
 
 
                     }, throwable -> Toast.makeText(getApplicationContext(), "Error on message listen", Toast.LENGTH_SHORT).show()));
+
+//            rxWear.message().listen("/dataMap", MessageApi.FILTER_LITERAL)
+//                    .compose(MessageEventGetDataMap.noFilter())
+//                    .subscribe(dataMap -> {
+//                        // String title = dataMap.getString("title", getString(R.string.no_message));
+//                        if  (dataMap.containsKey("WearHandleIntent")) {
+//                            String tmp = dataMap.getString("WearHandleIntent");
+//                            Toast.makeText(getApplicationContext(), "WearHandleIntent", Toast.LENGTH_SHORT).show();
+//                            switch (tmp)
+//                            {
+//                                case "Chimeaction":{
+//
+//                                }
+//                                break;
+//                                case "Timeraction":{
+//                                    Log.d(TAG, " Timeraction Rx action = " + tmp);
+//                                    sendVibroMessage(5);
+//                                    sendClockMessage("String s1","String  s2");
+//                                }
+//                                break;
+//                                case "ButtTimeraction":{
+//
+//                                }
+//                                break;
+//
+//                            }
+//
+//
+//                        }
+//                    });
+
+
+
+
+
+
+
 
             rxWear.message().listen("/dataMap", MessageApi.FILTER_LITERAL)
                     .compose(MessageEventGetDataMap.noFilter())
@@ -362,7 +484,7 @@ public class E52 extends CanvasWatchFaceService {
                     .setAcceptsTapEvents(true)
                     .build());
             Resources resources = E52.this.getResources();
-            alarmManager = (AlarmManager) E52.this.getSystemService(Context.ALARM_SERVICE);
+
             //        String nextAlarm = Settings.System.getString(getContentResolver(), alarmManager.getNextAlarmClock().toString());
 
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
@@ -478,7 +600,7 @@ public class E52 extends CanvasWatchFaceService {
             IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
             E52.this.registerReceiver(mTimeZoneReceiver, filter);
             E52.this.registerReceiver(mBatteryInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-
+           // E52.this.registerReceiver(mSpcStateReceiver, new IntentFilter("E52"));
         }
 
         private void unregisterReceiver() {
@@ -706,10 +828,11 @@ public class E52 extends CanvasWatchFaceService {
                                 case 1: //основной режим
                                     if (bChime) {
                                         bChime = false;
+                                        deleteChime();
                                     } else {
                                         bChime = true;
                                         iChimeCurrHours = (int) TimeUnit.MILLISECONDS.toHours(mCalendar.getTimeInMillis()) % 24;
-
+                                        refreshChimeAndSetNextUpdate();
                                     }
                                     break;
                                 case 2: // режим будильник
@@ -748,7 +871,8 @@ public class E52 extends CanvasWatchFaceService {
                                         // lStopwatchInbetweenTimeMls
                                         bTimerTimeStartStop = false;
                                         lCurrentTimerInbetweenEndTimeMls = lCurrentTimerEndTimeMls - mCalendar.getTimeInMillis();
-// // TODO: 08.10.2016 stopTimer
+                                        deleteTimer();
+// // TODO: 08.10.2016 stopTimerd
 //                                        bTimer2Req();
                                     } else {
                                         //                                            Запускаем таймер из промежуточного положения
@@ -756,12 +880,17 @@ public class E52 extends CanvasWatchFaceService {
                                         if (lCurrentTimerEndTimeMls != 0) {
                                             lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lCurrentTimerInbetweenEndTimeMls;
                                             //  startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lCurrentTimerInbetweenEndTimeMls));
+                                            refreshTimerAndSetNextUpdate(lCurrentTimerInbetweenEndTimeMls);
                                             lCurrentTimerInbetweenEndTimeMls = 0;
+
                                         } else {
 //                                            Запускаем таймер
 //                                            startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lTimerSetTimeMls));
                                             lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lTimerSetTimeMls;
+                                            refreshTimerAndSetNextUpdate(lTimerSetTimeMls);
                                         }
+
+
                                     }
                                     break;
 
@@ -923,7 +1052,7 @@ public class E52 extends CanvasWatchFaceService {
             int refreshInterval = (int) TimeUnit.MINUTES.toMillis(60); // milliseconds
 
             Intent intent = new Intent(context, cls);
-            PendingIntent refreshIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent refreshIntent = getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             alarmManager.setRepeating(alarmType, System.currentTimeMillis(), refreshInterval, refreshIntent);
@@ -1562,104 +1691,350 @@ public class E52 extends CanvasWatchFaceService {
 //                    long lButtCurrentTimerInbetweenEndTimeMls = 0;
 
                     Log.d(TAG, "steps updated: " + mStepsTotal);
+
                 }
             } else {
                 Log.e(TAG, "onResult() failed! " + dailyTotalResult.getStatus().getStatusMessage());
             }
         }
+        public void sendVibroMessage(int s) {
 
-        private class PerodicSyncTimerTask extends TimerTask {
-            @Override
+            long[] vibrationPattern1= new long[2*s+1] ;
+            //-1 - don't repeat
+            int indexInPatternToRepeat = -1;
 
-            public void run() {
-               // Calendar tmp =Calendar.getInstance();
-                long tmpCurrTim = mCalendar.getTimeInMillis();
-                if (bChime) {
-                    if (iChimeCurrHours < (TimeUnit.MILLISECONDS.toHours(tmpCurrTim) % 24)) {
-                        iChimeCurrHours = (int) TimeUnit.MILLISECONDS.toHours(tmpCurrTim) % 24;
-                        sendVibroMessage(iChimeCurrHours);
 
-                    }
+            Vibrator v = (Vibrator) getBaseContext().getSystemService(VIBRATOR_SERVICE);
+            if (v.hasVibrator()) {
+                for (int i = 0; i <2*s ; i=i+2) {
+                    vibrationPattern1[s]=100;// Length of a Morse Code "dot" in milliseconds 200 /2
+                    vibrationPattern1[s+1]=140;// Length of Gap Between dots/dashes 200
+
                 }
-                if (bTimerTimeStartStop) {
-                    if (alTimersCategories.get(ialTimersCategoriesActiveLvls[0])
-                            .alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                            .timersTimes.get(ialTimersCategoriesActiveLvls[2]).typeTimerBehavior==1)
-                    {
-                        sendVibroMessage(1);
-                    } // for timer
-                    if (lCurrentTimerEndTimeMls <= tmpCurrTim) {
-//                        Пора остановить таймер
+                v.vibrate(  vibrationPattern1 ,indexInPatternToRepeat);//
 
-                        lCurrentTimerEndTimeMls = 0;
-                        lCurrentTimerInbetweenEndTimeMls = 0;
-                        bTimerTimeStartStop = false;
-                        sendVibroMessage(5);
-                        // step to next timer
+            }
+            else {
+            }
+        }
+        private void sendClockMessage(String s1, String  s2) {
+            //Define Notification Manager
+            NotificationManager notificationManager = (NotificationManager)getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-                        alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                .timersTimes.get(ialTimersCategoriesActiveLvls[2]).active = false;
-                        // to next active
-                        alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                .timersTimes.get(ialTimersCategoriesActiveLvls[2]).repeats++;
-                        // repeats set ++1
-                        switch (alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextDo) {
-                            //type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
-                            case 0: {
-                                ialTimersCategoriesActiveLvls[2] = alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                        .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextid; //switch to next id
-                                lTimerSetTimeMls =  alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                        .timersTimes.get(ialTimersCategoriesActiveLvls[2]).time;
+//Define sound URI
+            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-                                alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                        .timersTimes.get(ialTimersCategoriesActiveLvls[2]).active = true; //set active new id
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext())
+                    .setSmallIcon(R.drawable.preview_digital)
+                    .setContentTitle(s1)
+                    .setContentText(s2)
+                    .setDefaults(Notification.DEFAULT_SOUND)
+                    .setSound(soundUri)
+                    .setVibrate(new long[] {50,50,100,50,100}); //This sets the sound to play
 
 
-                            }
-                            break;
-                            case 1: {
+//Display notification
+            notificationManager.notify(0, mBuilder.build());
+            //  Notifications.notify(this, 5000, "This text will go away after five seconds.");
 
-                            }
-                            break;
-                        }
-                        allData.setAlTimersCategories(alTimersCategories);
+            //   Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+        }
 
-                    }
-                }
-                if (bButtTimerStartStop) {
-                    if (lButtCurrentTimerEndTimeMls >= tmpCurrTim) {
 
-                    }
-                }
+        private void refreshChimeAndSetNextUpdate() {
+
+
+            Calendar tmpCal= Calendar.getInstance();;
+            long timeMs = mCalendar.getTimeInMillis();
+
+            // Schedule a new alarm
+            if (bChime) {
+                // Calculate the next chime trigger time
+                tmpCal.setTimeInMillis(timeMs);
+                tmpCal.add(Calendar.HOUR, 1);
+                tmpCal.set(Calendar.MINUTE, 0);
+                tmpCal.set(Calendar.SECOND, 0);
+                tmpCal.set(Calendar.MILLISECOND, 0);
+
+                long triggerTimeMs = tmpCal.getTimeInMillis();
+// Schedule an alarm.
+                mSpcStateAlarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerTimeMs,
+                        mSpcStateChimePendingIntent);
+                Log.d(TAG, "refreshChimeAndSetNextUpdate->"+ TimeInMilisToStr(triggerTimeMs));
 
 
             }
-
-            public void sendVibroMessage(int s) {
-
-                long[] vibrationPattern1= new long[2*s] ;
-                //-1 - don't repeat
-                 int indexInPatternToRepeat = -1;
+        }
+        private void deleteChime() {
 
 
-                    Vibrator v = (Vibrator) getBaseContext().getSystemService(VIBRATOR_SERVICE);
-                    if (v.hasVibrator()) {
-                        for (int i = 0; i <2*s ; i=i+2) {
-                            vibrationPattern1[s]=50;
-                            vibrationPattern1[s+1]=0;
+            // delete timer alarm
 
-                        }
-                        v.vibrate(  vibrationPattern1 , indexInPatternToRepeat );
+            mSpcStateAlarmManager.cancel(mSpcStateChimePendingIntent);
 
-                    }
-                    else {
+
+
+        }
+
+
+        private void refreshTimerAndSetNextUpdate(long lTimerSetMls) {
+//            AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//            alarm.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + timeToWakeUp, pendingIntent);
+
+            // Schedule a new timer alarm
+            if (bTimerTimeStartStop) {
+                // Schedule an alarm.
+                long wakeupTime = SystemClock.elapsedRealtime() + lTimerSetMls;///System.currentTimeMillis()
+                mSpcStateAlarmManager.setExact(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP ,//AlarmManager.RTC_WAKEUP
+                        wakeupTime , //lCurrentTimerEndTimeMls
+                        mSpcStateTimerPendingIntent);
+                Log.d(TAG, "refreshTimerAndSetNextUpdate->"+ TimeInMilisToStr(lCurrentTimerEndTimeMls)+" "+TimeInMilisToStr(wakeupTime));
+
+            }
+        }
+        private void deleteTimer() {
+
+
+            // delete timer alarm
+
+                mSpcStateAlarmManager.cancel(mSpcStateTimerPendingIntent);
+
+
+
+        }
+
+        private void refreshButtTimerAndSetNextUpdate() {
+
+
+            // Schedule a new Butt timer alarm
+            if (bButtTimerStartStop) {
+                // Schedule an alarm.
+                mSpcStateAlarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        lButtCurrentTimerEndTimeMls,
+                        mSpcStateButtTimerPendingIntent);
+               // mSpcStateAlarmManager.
+
+            }
+        }
+        private void deleteButtTimer() {
+
+
+            //delete Butt timer alarm
+
+                mSpcStateAlarmManager.cancel(mSpcStateButtTimerPendingIntent);
+
+
+        }
+
+
+        /**
+         * Sets up an alarm (and an associated notification) to go off after <code>duration</code>
+         * milliseconds.
+         */
+//        private void setupTimer(long duration) {
+//            NotificationManager notifyMgr =
+//                    ((NotificationManager) getSystemService(NOTIFICATION_SERVICE));
+//
+//            // Delete dataItem and cancel a potential old countdown.
+//            cancelCountdown(notifyMgr);
+//
+//            // Build notification and set it.
+//            notifyMgr.notify(Constants.NOTIFICATION_TIMER_COUNTDOWN, buildNotification(duration));
+//
+//            // Register with the alarm manager to display a notification when the timer is done.
+//            registerWithAlarmManager(duration);
+//
+//           // finish(); /// activity finish
+//        }
+//        private void registerWithAlarmManager(long duration) {
+//            // Get the alarm manager.
+//            AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//
+//            // Create intent that gets fired when timer expires.
+//            Intent intent = new Intent(Constants.ACTION_SHOW_ALARM, null, getApplicationContext(),
+//                    SpcStateReceiver.class);
+//            PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 0, intent,
+//                    PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//            // Calculate the time when it expires.
+//            long wakeupTime = System.currentTimeMillis() + duration;
+//
+//            // Schedule an alarm.
+//            alarm.setExact(AlarmManager.RTC_WAKEUP, wakeupTime, pendingIntent);
+//        }
+
+        /**
+         * Build a notification including different actions and other various setup and return it.
+         *
+         * @param duration the duration of the timer.
+         * @return the notification to display.
+         */
+
+//        private Notification buildNotification(long duration) {
+            // Intent to restart a timer.
+//            Intent restartIntent = new Intent(Constants.ACTION_RESTART_ALARM, null, getApplicationContext(),
+//                    SpcStateReceiver.class);
+//            PendingIntent pendingIntentRestart = PendingIntent
+//                    .getService(getApplicationContext(), 0, restartIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//            // Intent to delete a timer.
+//            Intent deleteIntent = new Intent(Constants.ACTION_DELETE_ALARM, null, getApplicationContext(),
+//                    SpcStateReceiver.class);
+//            PendingIntent pendingIntentDelete = PendingIntent
+//                    .getService(getApplicationContext(), 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//            // Create countdown notification using a chronometer style.
+//            return new Notification.Builder(getApplicationContext())
+//                    .setSmallIcon(R.drawable.ic_full_sad)
+//                    .setContentTitle("Time remaining") //Time remaining
+//                    .setContentText(TimeInMilisToStr( duration))
+//                    .setUsesChronometer(true)
+//                    .setWhen(System.currentTimeMillis() + duration)
+//                    .addAction(R.drawable.ic_action_collapse, getString(R.string.timer_restart),
+//                            pendingIntentRestart)
+//                    .addAction(R.drawable.ic_full_cancel, getString(R.string.alarm_set_done),
+//                            pendingIntentDelete)
+//                    .setDeleteIntent(pendingIntentDelete)
+//                    .setLocalOnly(true)
+//                    .build();
+
+//        }
+        /**
+         * Cancels an old countdown and deletes the dataItem.
+         *
+         * @param notifyMgr the notification manager.
+         */
+        private void cancelCountdown(NotificationManager notifyMgr) {
+            notifyMgr.cancel(Constants.NOTIFICATION_TIMER_EXPIRED);
+        }
+
+
+        @Override
+        public void onServiceConnected(MySpcIntentService service) {
+            this.mySpcIntentService = service;
+            servONduty = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(MySpcIntentService service) {
+            servONduty = false;
+        }
+
+
+        @Override
+        public void callAlarmfromService(String tmp) {
+            Log.d(TAG, "<<<<<<<<<<<<<<<<<callAlarmfromService()->>>>>>>>>>>>>>>>>>>");
+            long tmpCurrTim = mCalendar.getTimeInMillis();
+            switch (tmp)
+            {
+                case "Chimeaction":{
+                    if (bChime) {
+
+                        extrChimeFire(tmpCurrTim);
                     }
                 }
+                break;
+                case "Timeraction":{
+                    extrTimerFire(tmpCurrTim);
 
-            private void sendClockMessage(String s) {
-                Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+                }
+                break;
+                case "ButtTimeraction":{
+                    extrButtTimerFire(tmpCurrTim);
+                }
+                break;
+
+            }
+
+        }
+
+        public void extrChimeFire(long tmpCurrTim) {
+//            if (iChimeCurrHours < (TimeUnit.MILLISECONDS.toHours(tmpCurrTim) % 24)) {
+//                iChimeCurrHours = (int) TimeUnit.MILLISECONDS.toHours(tmpCurrTim) % 24;
+//                sendVibroMessage(iChimeCurrHours);
+//
+//            }
+            sendVibroMessage(1);
+            refreshChimeAndSetNextUpdate();
+        }
+
+        public void extrButtTimerFire(long tmpCurrTim) {
+            if (bButtTimerStartStop) {
+                if (lButtCurrentTimerEndTimeMls >= tmpCurrTim) {
+
+                }
+            }
+        }
+
+        public void extrTimerFire(long tmpCurrTim) {
+            if (bTimerTimeStartStop) {
+                //     sendVibroMessage(1);
+                if (alTimersCategories.get(ialTimersCategoriesActiveLvls[0])
+                        .alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                        .timersTimes.get(ialTimersCategoriesActiveLvls[2]).typeTimerBehavior==1)
+                {
+                    sendVibroMessage(1);
+                } // for timer
+              //  if (lCurrentTimerEndTimeMls <= tmpCurrTim) {
+//                        Пора остановить таймер
+                Log.d(TAG, "Пора остановить таймер->"+ TimeInMilisToStr(tmpCurrTim)+" "+TimeInMilisToStr(lCurrentTimerEndTimeMls));
+                    lCurrentTimerEndTimeMls = 0;
+                    lCurrentTimerInbetweenEndTimeMls = 0;
+                    bTimerTimeStartStop = false;
+                    sendVibroMessage(5);
+                    String s = alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                            .timersTimes.get(ialTimersCategoriesActiveLvls[2]).name;
+
+                    // step to next timer
+
+                    alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                            .timersTimes.get(ialTimersCategoriesActiveLvls[2]).active = false;
+                    // to next active
+                    alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                            .timersTimes.get(ialTimersCategoriesActiveLvls[2]).repeats++;
+                    // repeats set ++1
+                    switch (alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                            .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextDo) {
+                        //type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
+                        case 0: {
+                            ialTimersCategoriesActiveLvls[2] = alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                                    .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextid; //switch to next id
+                            lTimerSetTimeMls =  alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                                    .timersTimes.get(ialTimersCategoriesActiveLvls[2]).time;
+
+                            alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                                    .timersTimes.get(ialTimersCategoriesActiveLvls[2]).active = true; //set active new id
+
+
+                        }
+                        break;
+                        case 1: {
+
+                        }
+                        break;
+                    }
+                    allData.setAlTimersCategories(alTimersCategories);
+
+                    sendClockMessage(s,alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                            .timersTimes.get(ialTimersCategoriesActiveLvls[2]).name );//getString(R.string.timer_set_str)
+
+
             }
         }
     }
+
+    private String TimeInMilisToStr(long time) {
+        long second = (time / 1000) % 60;
+        long minute = (time / (1000 * 60)) % 60;
+        long hour = (time / (1000 * 60 * 60)) % 24;
+        return  String.format("%02d:%02d:%02d", hour, minute, second);
+    }
+
+
+    // am.setRepeating(AlarmManager.RTC, SystemClock.elapsedRealtime(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
 }
