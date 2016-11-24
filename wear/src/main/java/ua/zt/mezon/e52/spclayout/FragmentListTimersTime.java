@@ -1,29 +1,51 @@
-package ua.zt.mezon.e52;
+package ua.zt.mezon.e52.spclayout;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.wearable.activity.WearableActivity;
-import android.support.wearable.view.BoxInsetLayout;
+import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.view.CircledImageView;
-import android.support.wearable.view.WatchViewStub;
 import android.support.wearable.view.WearableListView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
 
-import static ua.zt.mezon.e52.R.id.image;
+import ua.zt.mezon.e52.R;
 
-public class AdvancedListActivity extends Activity implements WearableListView.ClickListener  {
+/**
+ * Created by MezM on 23.11.2016.
+ */
+public class FragmentListTimersTime extends Fragment implements WearableListView.ClickListener{
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        final View view=inflater.inflate(R.layout.list_fragment, container, false);
+        mDefaultCircleRadius = getResources().getDimension(R.dimen.default_settings_circle_radius);
+        mSelectedCircleRadius = getResources().getDimension(R.dimen.selected_settings_circle_radius);
+        mAdapter = new MyListAdapter();
+
+
+
+        mListView = (WearableListView) view.findViewById(R.id.listView);
+        mListView.setAdapter(mAdapter);
+        mListView.setClickListener(FragmentListTimersTime.this);
+
+        return view;
+
+
+
+
+    }
+
 
     private WearableListView mListView;
     private MyListAdapter mAdapter;
@@ -31,25 +53,7 @@ public class AdvancedListActivity extends Activity implements WearableListView.C
     private float mDefaultCircleRadius;
     private float mSelectedCircleRadius;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_listview);
 
-        mDefaultCircleRadius = getResources().getDimension(R.dimen.default_settings_circle_radius);
-        mSelectedCircleRadius = getResources().getDimension(R.dimen.selected_settings_circle_radius);
-        mAdapter = new MyListAdapter();
-
-        final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
-        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
-            @Override
-            public void onLayoutInflated(WatchViewStub stub) {
-                mListView = (WearableListView) stub.findViewById(R.id.listView1);
-                mListView.setAdapter(mAdapter);
-                mListView.setClickListener(AdvancedListActivity.this);
-            }
-        });
-    }
 
     private static ArrayList<Integer> listItems;
     static {
@@ -70,19 +74,24 @@ public class AdvancedListActivity extends Activity implements WearableListView.C
 
     @Override
     public void onClick(WearableListView.ViewHolder viewHolder) {
-        Toast.makeText(this, String.format("You selected item #%s", viewHolder.getPosition()), Toast.LENGTH_SHORT).show();
+     //   Toast.makeText(getActivity().getApplicationContext(), String.format("You selected item #%s", viewHolder.getPosition()), Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(getActivity().getApplicationContext(), ConfirmationActivity.class);
+        intent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.SUCCESS_ANIMATION);
+        intent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, String.format("You set active item #%s", viewHolder.getPosition()));
+        startActivity(intent);
+        getActivity().finish();
     }
 
     @Override
     public void onTopEmptyRegionClick() {
-        Toast.makeText(this, "You tapped Top empty area", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity().getApplicationContext(), "You tapped Top empty area", Toast.LENGTH_SHORT).show();
     }
 
     public class MyListAdapter extends WearableListView.Adapter {
 
         @Override
         public WearableListView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-            return new WearableListView.ViewHolder(new MyItemView(AdvancedListActivity.this));
+            return new WearableListView.ViewHolder(new MyItemView(FragmentListTimersTime.this.getActivity().getApplicationContext()));
         }
 
         @Override
@@ -214,6 +223,5 @@ public class AdvancedListActivity extends Activity implements WearableListView.C
             txtView.animate().scaleX(0.7f).scaleY(0.7f).alpha(0.5f);
         }
     }
-
 
 }

@@ -81,6 +81,7 @@ import ua.zt.mezon.e52.core.ServiceConnector;
 import ua.zt.mezon.e52.misc.TimerWorkspace;
 import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
 import ua.zt.mezon.e52.misc.TimersTime;
+import ua.zt.mezon.e52.spclayout.TimerTypeSelectActivity;
 
 import static android.app.PendingIntent.getService;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -327,11 +328,6 @@ public class E52 extends CanvasWatchFaceService {
                     1,
                     spcStateTimerIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
-//            mSpcStateTimerPendingIntent = PendingIntent.getBroadcast(
-//                    getApplicationContext(),
-//                    2,
-//                    spcStateTimerIntent,
-//                    PendingIntent.FLAG_UPDATE_CURRENT);
             Intent spcStateButtTimerIntent =
                     new Intent(getApplicationContext(),MySpcIntentService.class);
             spcStateButtTimerIntent.setAction("ButtTimeraction");
@@ -350,27 +346,7 @@ public class E52 extends CanvasWatchFaceService {
             if (!allData.isFirstTimeLaunch()) {
                 alTimersCategories = allData.getAlTimersCategories();
 
-                for (TimerWorkspace tmp :
-                        alTimersCategories) {
-                    if (tmp.active) {
-                        ialTimersCategoriesActiveLvls[0] = tmp.id;
-                        for (TimersCategoryInWorkspace tmp1 :
-                                tmp.alTimersCategoryInWorkspace) {
-                            if (tmp1.active) {
-                                ialTimersCategoriesActiveLvls[1] = tmp1.id;
-                                string_TIMER = tmp1.sTmrCategorySymbol;
-                                for (TimersTime tmp2 :
-                                        tmp1.timersTimes) {
-                                    if (tmp2.active) {
-                                        ialTimersCategoriesActiveLvls[2] = tmp2.id;
-                                        lTimerSetTimeMls = tmp2.time;
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
+                setUpInternalTimers();
 
             }
             rxWear = new RxWear(getApplicationContext());
@@ -434,28 +410,7 @@ public class E52 extends CanvasWatchFaceService {
                             allData.setAlTimersCategories(alTimersCategories);
                             allData.setFirstTimeLaunch(false);
                             Toast.makeText(getApplicationContext(), "Timers arrived", Toast.LENGTH_SHORT).show();
-                            for (TimerWorkspace tmp :
-                                    alTimersCategories) {
-                                if (tmp.active) {
-                                    ialTimersCategoriesActiveLvls[0] = tmp.id;
-                                    for (TimersCategoryInWorkspace tmp1 :
-                                            tmp.alTimersCategoryInWorkspace) {
-                                        if (tmp1.active) {
-                                            ialTimersCategoriesActiveLvls[1] = tmp1.id;
-                                            string_TIMER = tmp1.sTmrCategorySymbol;
-                                            for (TimersTime tmp2 :
-                                                    tmp1.timersTimes) {
-                                                if (tmp2.active) {
-                                                    ialTimersCategoriesActiveLvls[2] = tmp2.id;
-                                                    lTimerSetTimeMls = tmp2.time;
-                                                }
-                                            }
-
-                                        }
-                                    }
-                                }
-                            }
-//
+                            setUpInternalTimers();
 //                           long lTimerSetTimeMls = TimeUnit.SECONDS.toMillis(20) + TimeUnit.MINUTES.toMillis(3);
 //                           long lCurrentTimerEndTimeMls = 0;
 //                           long lCurrentTimerInbetweenEndTimeMls = 0;
@@ -537,6 +492,31 @@ public class E52 extends CanvasWatchFaceService {
             mClockButtonsBoundingRect.setColor(Color.RED);
 
 
+        }
+
+        public void setUpInternalTimers() {
+            for (TimerWorkspace tmp :
+                    alTimersCategories) {
+                if (tmp.active) {
+                    ialTimersCategoriesActiveLvls[0] = tmp.id;
+                    for (TimersCategoryInWorkspace tmp1 :
+                            tmp.alTimersCategoryInWorkspace) {
+                        if (tmp1.active) {
+                            ialTimersCategoriesActiveLvls[1] = tmp1.id;
+                            string_TIMER = tmp1.sTmrCategorySymbol;
+                            for (TimersTime tmp2 :
+                                    tmp1.timersTimes) {
+                                if (tmp2.active) {
+                                    ialTimersCategoriesActiveLvls[2] = tmp2.id;
+                                    lTimerSetTimeMls = tmp2.time;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+//
         }
 
         @Override
@@ -941,7 +921,7 @@ public class E52 extends CanvasWatchFaceService {
 
                                     } else {
                                         if (lCurrentTimerEndTimeMls == 0) {
-                                            Intent intent = new Intent(getApplicationContext(), AdvancedListActivity.class);
+                                            Intent intent = new Intent(getApplicationContext(), TimerTypeSelectActivity.class);
                                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                             startActivity(intent);
                                         }
@@ -1830,79 +1810,53 @@ public class E52 extends CanvasWatchFaceService {
 
         }
 
+        public PendingIntent getGoNextTimerPendingIntent( ){
+            Intent restartIntent =
+                    new Intent(getApplicationContext(), MySpcIntentService.class);//MyIntentServiceMySpcIntentService
+            restartIntent.setAction("nextTimeraction");
+            restartIntent.putExtra("extra","nextE52StateTimer");
+            PendingIntent pendingIntentRestart = PendingIntent.getService(
+                    getApplicationContext(),
+                    99,
+                    restartIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
 
-        /**
-         * Sets up an alarm (and an associated notification) to go off after <code>duration</code>
-         * milliseconds.
-         */
-//        private void setupTimer(long duration) {
-//            NotificationManager notifyMgr =
-//                    ((NotificationManager) getSystemService(NOTIFICATION_SERVICE));
-//
-//            // Delete dataItem and cancel a potential old countdown.
-//            cancelCountdown(notifyMgr);
-//
-//            // Build notification and set it.
-//            notifyMgr.notify(Constants.NOTIFICATION_TIMER_COUNTDOWN, buildNotification(duration));
-//
-//            // Register with the alarm manager to display a notification when the timer is done.
-//            registerWithAlarmManager(duration);
-//
-//           // finish(); /// activity finish
-//        }
-//        private void registerWithAlarmManager(long duration) {
-//            // Get the alarm manager.
-//            AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-//
-//            // Create intent that gets fired when timer expires.
-//            Intent intent = new Intent(Constants.ACTION_SHOW_ALARM, null, getApplicationContext(),
-//                    SpcStateReceiver.class);
-//            PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 0, intent,
-//                    PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//            // Calculate the time when it expires.
-//            long wakeupTime = System.currentTimeMillis() + duration;
-//
-//            // Schedule an alarm.
-//            alarm.setExact(AlarmManager.RTC_WAKEUP, wakeupTime, pendingIntent);
-//        }
+            return pendingIntentRestart;
+        }
 
         /**
          * Build a notification including different actions and other various setup and return it.
          *
-         * @param duration the duration of the timer.
+         * @param s2 name the next  timer.
          * @return the notification to display.
          */
+        private void sendClockMessagewithstartNextTimer(String s1, String  s2) {
+            //             Intent to restart a timer.
 
-//        private Notification buildNotification(long duration) {
-            // Intent to restart a timer.
-//            Intent restartIntent = new Intent(Constants.ACTION_RESTART_ALARM, null, getApplicationContext(),
-//                    SpcStateReceiver.class);
-//            PendingIntent pendingIntentRestart = PendingIntent
-//                    .getService(getApplicationContext(), 0, restartIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//            // Intent to delete a timer.
-//            Intent deleteIntent = new Intent(Constants.ACTION_DELETE_ALARM, null, getApplicationContext(),
-//                    SpcStateReceiver.class);
-//            PendingIntent pendingIntentDelete = PendingIntent
-//                    .getService(getApplicationContext(), 0, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//            // Create countdown notification using a chronometer style.
-//            return new Notification.Builder(getApplicationContext())
-//                    .setSmallIcon(R.drawable.ic_full_sad)
-//                    .setContentTitle("Time remaining") //Time remaining
-//                    .setContentText(TimeInMilisToStr( duration))
-//                    .setUsesChronometer(true)
-//                    .setWhen(System.currentTimeMillis() + duration)
-//                    .addAction(R.drawable.ic_action_collapse, getString(R.string.timer_restart),
-//                            pendingIntentRestart)
-//                    .addAction(R.drawable.ic_full_cancel, getString(R.string.alarm_set_done),
-//                            pendingIntentDelete)
-//                    .setDeleteIntent(pendingIntentDelete)
-//                    .setLocalOnly(true)
-//                    .build();
+            NotificationManager notificationManager = (NotificationManager)getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-//        }
+            NotificationCompat.Action actionnext;
+            actionnext = new NotificationCompat.Action(android.R.drawable.ic_popup_reminder, "Go Next timer-> \n" +s2, getGoNextTimerPendingIntent());
+
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext())
+                    .setSmallIcon(R.drawable.preview_digital)
+                    .setContentTitle(s1)
+                    .setContentText(s2)
+                    .setDefaults(Notification.DEFAULT_SOUND)
+                   // .setSound(soundUri)
+                    //.setVibrate(new long[] {150,50,100,150,100}) //This sets the sound to play
+                    .addAction(actionnext)
+
+                    .setOnlyAlertOnce(true)
+                    .setLocalOnly(true);
+
+//Display notification
+
+            notificationManager.notify(99, mBuilder.build());
+        }
+
+
+
         /**
          * Cancels an old countdown and deletes the dataItem.
          *
@@ -1947,7 +1901,26 @@ public class E52 extends CanvasWatchFaceService {
                     extrButtTimerFire(tmpCurrTim);
                 }
                 break;
+                case "nextTimeraction" :{
+                    NotificationManager notificationManager = (NotificationManager)getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                    notificationManager.cancel(99);
+                    if (!bTimerTimeStartStop) {
+                        bTimerTimeStartStop = true;
+                        if (lCurrentTimerEndTimeMls != 0) {
+                            lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lCurrentTimerInbetweenEndTimeMls;
+                            //  startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lCurrentTimerInbetweenEndTimeMls));
+                            refreshTimerAndSetNextUpdate(lCurrentTimerInbetweenEndTimeMls);
+                            lCurrentTimerInbetweenEndTimeMls = 0;
 
+                        } else {
+//                                            Запускаем таймер
+//                                            startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lTimerSetTimeMls));
+                            lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lTimerSetTimeMls;
+                            refreshTimerAndSetNextUpdate(lTimerSetTimeMls);
+                        }
+                    }
+                }
+                break;
             }
 
         }
@@ -2018,8 +1991,8 @@ public class E52 extends CanvasWatchFaceService {
                         break;
                     }
                     allData.setAlTimersCategories(alTimersCategories);
-
-                    sendClockMessage(s,alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+//sendClockMessage();
+                    sendClockMessagewithstartNextTimer(s,alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
                             .timersTimes.get(ialTimersCategoriesActiveLvls[2]).name );//getString(R.string.timer_set_str)
 
 

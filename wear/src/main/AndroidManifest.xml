@@ -47,10 +47,10 @@
             android:required="false" />
 
         <activity
-            android:name=".AdvancedListActivity"
+            android:name=".spclayout.TimerTypeSelectActivity"
             android:label="@string/title_activity_advanced_list"
             android:theme="@android:style/Theme.DeviceDefault.Light" />
-
+        <activity android:name="android.support.wearable.activity.ConfirmationActivity" />
         <service
             android:name=".core.MySpcIntentService"
             android:exported="false"></service>
