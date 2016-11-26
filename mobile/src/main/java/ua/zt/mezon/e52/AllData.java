@@ -283,4 +283,26 @@ public String convertALTimerWorkspace (ArrayList<TimerWorkspace> tmp){
         saveTimersToPrefs();
 
     }
+    public int getIdXbyId_alTimersCategories (ArrayList<TimerWorkspace> alTmpTimersCategories, int id) {
+
+        for (int i = 0; i <alTmpTimersCategories.size() ; i++) {
+            if (alTmpTimersCategories.get(i).id==id) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+    public boolean isValidId_alTimersCategories (ArrayList<TimerWorkspace> alTmpTimersCategories, int id) {
+
+        for (TimerWorkspace z: alTmpTimersCategories
+                ) {
+            if (z.id==id) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
 }

@@ -8,9 +8,17 @@
     android:padding="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     android:weightSum="1">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <Button
+            android:text="@string/save_all_timers_categories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/setAlTimersCategoriesButton"
+             />
 
         <Button
             android:id="@+id/AddTimerWorkSpspButton"
@@ -18,7 +26,7 @@
             android:layout_height="match_parent"
             android:text="@string/add_timerworkspace_button"
             android:layout_alignParentEnd="true"
-
+            android:layout_below="@+id/setAlTimersCategoriesButton"
             android:layout_alignBottom="@+id/tmrworkspspinner" />
 
         <Spinner
@@ -26,15 +34,10 @@
             android:layout_height="wrap_content"
             android:id="@+id/tmrworkspspinner"
             android:layout_alignParentStart="true"
+            android:layout_below="@+id/setAlTimersCategoriesButton"
             android:layout_toStartOf="@+id/AddTimerWorkSpspButton"
 
             />
-        <Button
-            android:text="@string/save_all_timers_categories"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/setAlTimersCategoriesButton"
-            android:layout_below="@+id/tmrworkspspinner" />
     </RelativeLayout>
 
 

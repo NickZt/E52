@@ -93,7 +93,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 public class E52 extends CanvasWatchFaceService {
     private AlarmManager mSpcStateAlarmManager;
-    private PendingIntent mSpcStateChimePendingIntent, mSpcStateButtTimerPendingIntent, mSpcStateTimerPendingIntent;
+    private PendingIntent mSpcStateAlarmPendingIntent,mSpcStateChimePendingIntent, mSpcStateButtTimerPendingIntent, mSpcStateTimerPendingIntent;
     // Left and right dial supported types.
     private CompositeSubscription subscription = new CompositeSubscription();
 
@@ -319,13 +319,25 @@ public class E52 extends CanvasWatchFaceService {
                     spcStateChimeIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
+
+            Intent spcStateAlarmIntent =
+                    new Intent(getApplicationContext(), MySpcIntentService.class);//getApplicationContext(), MyIntentService.class
+            spcStateAlarmIntent.setAction("Alarmaction");
+            spcStateAlarmIntent.putExtra("extra","E52Alarmaction");
+            mSpcStateAlarmPendingIntent = PendingIntent.getService(
+                    getApplicationContext(),
+                    1,
+                    spcStateAlarmIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+
+
             Intent spcStateTimerIntent =
                     new Intent(getApplicationContext(), MySpcIntentService.class);//MyIntentServiceMySpcIntentService
             spcStateTimerIntent.setAction("Timeraction");
             spcStateTimerIntent.putExtra("extra","E52StateTimer");
             mSpcStateTimerPendingIntent = PendingIntent.getService(
                     getApplicationContext(),
-                    1,
+                    2,
                     spcStateTimerIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
             Intent spcStateButtTimerIntent =
@@ -495,19 +507,27 @@ public class E52 extends CanvasWatchFaceService {
         }
 
         public void setUpInternalTimers() {
+            if (bTimerTimeStartStop) {
+                bTimerTimeStartStop=false;
+                deleteTimer();
+            }
             for (TimerWorkspace tmp :
                     alTimersCategories) {
                 if (tmp.active) {
-                    ialTimersCategoriesActiveLvls[0] = tmp.id;
+                    ialTimersCategoriesActiveLvls[0] = allData.getIdXbyId_alTimersCategories(alTimersCategories,tmp.id);
+                    if (ialTimersCategoriesActiveLvls[0]==-1) ialTimersCategoriesActiveLvls[0]=0;
                     for (TimersCategoryInWorkspace tmp1 :
                             tmp.alTimersCategoryInWorkspace) {
                         if (tmp1.active) {
-                            ialTimersCategoriesActiveLvls[1] = tmp1.id;
+                            ialTimersCategoriesActiveLvls[1] = tmp.getIdXbyId_alTimersCategoryInWorkspace(tmp.alTimersCategoryInWorkspace,  tmp1.id);
+                            if (ialTimersCategoriesActiveLvls[1]==-1) ialTimersCategoriesActiveLvls[1]=0;
                             string_TIMER = tmp1.sTmrCategorySymbol;
                             for (TimersTime tmp2 :
                                     tmp1.timersTimes) {
                                 if (tmp2.active) {
-                                    ialTimersCategoriesActiveLvls[2] = tmp2.id;
+
+                                    ialTimersCategoriesActiveLvls[2] =tmp1.getIdXbyId_timersTimes( tmp1.timersTimes,tmp2.id);
+                                    if (ialTimersCategoriesActiveLvls[2]==-1) ialTimersCategoriesActiveLvls[2]=0;
                                     lTimerSetTimeMls = tmp2.time;
                                 }
                             }
@@ -818,10 +838,12 @@ public class E52 extends CanvasWatchFaceService {
                                 case 2: // режим будильник
                                     if (bAlarmTimeStartStop) {
                                         bAlarmTimeStartStop = false;
-                                        bAl2Req();
+                                       // bAl2Req();
+                                        deleteAlarm();
                                     } else {
                                         bAlarmTimeStartStop = true;
-                                        alWorkDaysSetter((int) (MILLISECONDS.toHours(lAlarmTimeMls) % 24), (int) (MILLISECONDS.toMinutes(lAlarmTimeMls) % 60));
+                                      //  alWorkDaysSetter((int) (MILLISECONDS.toHours(lAlarmTimeMls) % 24), (int) (MILLISECONDS.toMinutes(lAlarmTimeMls) % 60));
+                                        refreshsetAlarmAndSetNextUpdate((int) (MILLISECONDS.toHours(lAlarmTimeMls) % 24), (int) (MILLISECONDS.toMinutes(lAlarmTimeMls) % 60));
                                     }
                                     break;
 
@@ -891,10 +913,12 @@ public class E52 extends CanvasWatchFaceService {
                                 case 2: // режим будильник
                                     if (bAlarmTimeStartStop) {
                                         bAlarmTimeStartStop = false;
-                                        bAl2Req();
+                                       // bAl2Req();
+                                        deleteAlarm();
                                     } else {
                                         bAlarmTimeStartStop = true;
-                                        setAlarm((int) (MILLISECONDS.toHours(lAlarmTimeMls) % 24), (int) (MILLISECONDS.toMinutes(lAlarmTimeMls) % 60));
+                                      //  setAlarm((int) (MILLISECONDS.toHours(lAlarmTimeMls) % 24), (int) (MILLISECONDS.toMinutes(lAlarmTimeMls) % 60));
+                                        refreshsetAlarmAndSetNextUpdate((int) (MILLISECONDS.toHours(lAlarmTimeMls) % 24), (int) (MILLISECONDS.toMinutes(lAlarmTimeMls) % 60));
                                     }
 
 
@@ -1721,6 +1745,58 @@ public class E52 extends CanvasWatchFaceService {
         }
 
 
+        private void refreshsetAlarmAndSetNextUpdate(int hours , int minutes) {
+
+
+            Calendar tmpCal= Calendar.getInstance();;
+            long timeMs = mCalendar.getTimeInMillis();
+
+            // Schedule a new alarm
+            if (bAlarmTimeStartStop) {
+                // Calculate the next chime trigger time
+
+// время до старта аларма
+//                tmpCal.se
+                tmpCal.setTimeInMillis(timeMs);
+                tmpCal.set(Calendar.HOUR_OF_DAY, hours);
+                tmpCal.set(Calendar.MINUTE, minutes);
+                tmpCal.set(Calendar.SECOND, 0);
+                tmpCal.set(Calendar.MILLISECOND, 0);
+
+               if (tmpCal.after(mCalendar)) {
+
+               }
+               else {
+                   tmpCal.add(Calendar.DAY_OF_MONTH, 1);
+
+               };
+
+
+
+                long triggerTimeMs = tmpCal.getTimeInMillis();
+// Schedule an alarm.
+                mSpcStateAlarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerTimeMs,
+                        mSpcStateAlarmPendingIntent);
+                Log.d(TAG, "refreshAlarm->"+ TimeInMilisToStr(triggerTimeMs)+"now> "+TimeInMilisToStr(timeMs));
+
+
+            }
+        }
+        private void deleteAlarm() {
+
+
+            // delete timer alarm
+
+            mSpcStateAlarmManager.cancel(mSpcStateAlarmPendingIntent);
+
+
+
+        }
+
+
+
         private void refreshChimeAndSetNextUpdate() {
 
 
@@ -1731,7 +1807,7 @@ public class E52 extends CanvasWatchFaceService {
             if (bChime) {
                 // Calculate the next chime trigger time
                 tmpCal.setTimeInMillis(timeMs);
-                tmpCal.add(Calendar.HOUR, 1);
+                tmpCal.add(Calendar.HOUR_OF_DAY, 1);
                 tmpCal.set(Calendar.MINUTE, 0);
                 tmpCal.set(Calendar.SECOND, 0);
                 tmpCal.set(Calendar.MILLISECOND, 0);
@@ -1811,6 +1887,7 @@ public class E52 extends CanvasWatchFaceService {
         }
 
         public PendingIntent getGoNextTimerPendingIntent( ){
+//            // TODO: 26.11.2016 intent to set many more data
             Intent restartIntent =
                     new Intent(getApplicationContext(), MySpcIntentService.class);//MyIntentServiceMySpcIntentService
             restartIntent.setAction("nextTimeraction");
@@ -1885,6 +1962,14 @@ public class E52 extends CanvasWatchFaceService {
             long tmpCurrTim = mCalendar.getTimeInMillis();
             switch (tmp)
             {
+
+                case "Alarmaction":{
+                    if (bAlarmTimeStartStop) {
+
+                        extrAlarmFire(tmpCurrTim);
+                    }
+                }
+                break;
                 case "Chimeaction":{
                     if (bChime) {
 
@@ -1902,29 +1987,45 @@ public class E52 extends CanvasWatchFaceService {
                 }
                 break;
                 case "nextTimeraction" :{
-                    NotificationManager notificationManager = (NotificationManager)getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                    notificationManager.cancel(99);
-                    if (!bTimerTimeStartStop) {
-                        bTimerTimeStartStop = true;
-                        if (lCurrentTimerEndTimeMls != 0) {
-                            lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lCurrentTimerInbetweenEndTimeMls;
-                            //  startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lCurrentTimerInbetweenEndTimeMls));
-                            refreshTimerAndSetNextUpdate(lCurrentTimerInbetweenEndTimeMls);
-                            lCurrentTimerInbetweenEndTimeMls = 0;
-
-                        } else {
-//                                            Запускаем таймер
-//                                            startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lTimerSetTimeMls));
-                            lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lTimerSetTimeMls;
-                            refreshTimerAndSetNextUpdate(lTimerSetTimeMls);
-                        }
-                    }
+                    extrnextTimerActionFire();
                 }
                 break;
+                case "changeTimerSetaction" :{
+                    alTimersCategories = allData.getAlTimersCategories();
+                    setUpInternalTimers();
+                }
+                break;
+
+
             }
 
         }
 
+        public void extrnextTimerActionFire() {
+            NotificationManager notificationManager = (NotificationManager)getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(99);
+            if (!bTimerTimeStartStop) {
+                bTimerTimeStartStop = true;
+                if (lCurrentTimerEndTimeMls != 0) {
+                    lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lCurrentTimerInbetweenEndTimeMls;
+                    //  startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lCurrentTimerInbetweenEndTimeMls));
+                    refreshTimerAndSetNextUpdate(lCurrentTimerInbetweenEndTimeMls);
+                    lCurrentTimerInbetweenEndTimeMls = 0;
+
+                } else {
+//                                            Запускаем таймер
+//                                            startTimer(getString(R.string.timer_set_str), (int) MILLISECONDS.toSeconds(lTimerSetTimeMls));
+                    lCurrentTimerEndTimeMls = mCalendar.getTimeInMillis() + lTimerSetTimeMls;
+                    refreshTimerAndSetNextUpdate(lTimerSetTimeMls);
+                }
+            }
+        }
+
+        public void  extrAlarmFire (long tmpCurrTim) {
+            sendVibroMessage(8);
+            sendClockMessage(getString(R.string.my_digital_name),getString(R.string.alarm_set_done) ); //my_digital_name
+            bAlarmTimeStartStop=false;
+        }
         public void extrChimeFire(long tmpCurrTim) {
 //            if (iChimeCurrHours < (TimeUnit.MILLISECONDS.toHours(tmpCurrTim) % 24)) {
 //                iChimeCurrHours = (int) TimeUnit.MILLISECONDS.toHours(tmpCurrTim) % 24;
@@ -1932,7 +2033,7 @@ public class E52 extends CanvasWatchFaceService {
 //
 //            }
             sendVibroMessage(1);
-            refreshChimeAndSetNextUpdate();
+
         }
 
         public void extrButtTimerFire(long tmpCurrTim) {
@@ -1958,7 +2059,7 @@ public class E52 extends CanvasWatchFaceService {
                     lCurrentTimerEndTimeMls = 0;
                     lCurrentTimerInbetweenEndTimeMls = 0;
                     bTimerTimeStartStop = false;
-                    sendVibroMessage(5);
+                    sendVibroMessage(4);
                     String s = alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
                             .timersTimes.get(ialTimersCategoriesActiveLvls[2]).name;
 
@@ -1974,8 +2075,17 @@ public class E52 extends CanvasWatchFaceService {
                             .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextDo) {
                         //type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
                         case 0: {
-                            ialTimersCategoriesActiveLvls[2] = alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                    .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextid; //switch to next id
+                            int tmpid = alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                                    .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextid;
+
+                            ialTimersCategoriesActiveLvls[2] =alTimersCategories.get(ialTimersCategoriesActiveLvls[0])
+                                                                .alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                                                                 .getIdXbyId_timersTimes(
+                                                                         alTimersCategories.get(ialTimersCategoriesActiveLvls[0])
+                                                                                 .alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
+                                                                        .timersTimes, tmpid);
+
+                            //switch to next id
                             lTimerSetTimeMls =  alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
                                     .timersTimes.get(ialTimersCategoriesActiveLvls[2]).time;
 

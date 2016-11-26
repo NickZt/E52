@@ -14,7 +14,7 @@
     <string name="alarm_set_done">E-52 Будильник</string>
     <string name="timer_set_str">E-52 Яйцетаймер</string>
     <string name="title_activity_advanced_list">AdvancedListActivity</string>
-    <string name="hello_world">Hello World!</string>
     <string name="no_message">no message</string>
     <string name="no_message_info">No message received yet</string>
+    <string name="TimerActive"><![CDATA[" Active now > "]]></string>
 </resources>

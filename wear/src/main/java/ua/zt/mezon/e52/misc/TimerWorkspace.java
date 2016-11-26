@@ -13,4 +13,25 @@ public class TimerWorkspace {
     public int id;
     public boolean active;
 
+    public int getIdXbyId_alTimersCategoryInWorkspace (ArrayList <TimersCategoryInWorkspace> alTmp, int id) {
+
+        for (int i = 0; i <alTmp.size() ; i++) {
+            if (alTmp.get(i).id==id) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+    public boolean isValidId_alTimersCategoryInWorkspace (ArrayList <TimersCategoryInWorkspace> alTmp, int id) {
+
+        for (TimersCategoryInWorkspace z: alTmp
+                ) {
+            if (z.id==id) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

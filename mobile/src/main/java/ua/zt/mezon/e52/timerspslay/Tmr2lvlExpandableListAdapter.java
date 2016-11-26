@@ -182,7 +182,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     itemController.menu.getMenu().clear();
                 }
 
-                MenuItem myActionItem=itemController.menu.getMenu().add(0, 0, 0, "Return to  " + item.text);
+                MenuItem myActionItem=itemController.menu.getMenu().add(0, 0, 0, context.getString(R.string.menu_return) + item.text);
                 myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
 
 
@@ -421,16 +421,19 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     .setOnMenuItemClickListener(this);
 
             MenuItem myActionItem=menu.getMenu().add(0, CM_EDIT, 0, R.string.menu_edit);
+            myActionItem.setEnabled(false);
             myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
             myActionItem.setOnMenuItemClickListener(this);
 
             menu.getMenu().add(0, CM_DELETE, 0, R.string.menu_Delete)
                     .setIcon(R.drawable.ic_andr_cross)
+                    .setEnabled(false)
                     .setOnMenuItemClickListener(this)
                     .setEnabled(indata.get(mCurrItem.id).timersTimes.isEmpty());
 
             menu.getMenu().add(0, CM_ADD, 0, R.string.menu_add)
                     .setIcon(android.R.drawable.sym_contact_card)
+                    .setEnabled(false)
                     .setOnMenuItemClickListener(this);
         }
 

@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v4.util.LruCache;
 import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.FragmentGridPagerAdapter;
@@ -37,9 +38,32 @@ public class GridAdapter extends FragmentGridPagerAdapter {
 
         mRows = new ArrayList<>();
 
+        Bundle bundle2 = new Bundle();
+
+        bundle2.putInt("messageSHOWLEVEL", 2 );
+        FragmentListTimersTime fragInfo2 = new FragmentListTimersTime();
+        fragInfo2.setArguments(bundle2);
+
+        Bundle bundle1 = new Bundle();
+        bundle1.putInt("messageSHOWLEVEL", 1 );
+        FragmentListTimersTime fragInfo1 = new FragmentListTimersTime();
+        fragInfo1.setArguments(bundle1);
+
+        Bundle bundle0 = new Bundle();
+        bundle0.putInt("messageSHOWLEVEL", 0 );
+        FragmentListTimersTime fragInfo0 = new FragmentListTimersTime();
+        fragInfo0.setArguments(bundle0);
+
+
+
         mRows.add(new Row(
-                new FragmentListTimersTime(),
-                new FragmentListTimersCategory()));
+                fragInfo2,
+                fragInfo1,
+                fragInfo0
+//                ,
+//                new FragmentListTimersTime(),
+//                new FragmentListTimersCategory()
+        ));
         mDefaultBg = new ColorDrawable(ctx.getResources().getColor(R.color.dark_grey));
         mClearBg = new ColorDrawable(ctx.getResources().getColor(android.R.color.transparent));
     }

@@ -52,6 +52,7 @@
     <string name="menu_edit">"Edit  "</string>
     <string name="menu_add"><![CDATA[Copy & Add this]]></string>
     <string name="menu_active">Set active</string>
+    <string name="menu_return">"Return to "</string>
 
 
 </resources>
