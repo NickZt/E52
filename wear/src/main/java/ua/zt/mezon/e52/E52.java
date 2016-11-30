@@ -80,11 +80,13 @@ import ua.zt.mezon.e52.core.MySpcIntentService;
 import ua.zt.mezon.e52.core.ServiceConnector;
 import ua.zt.mezon.e52.misc.TimerWorkspace;
 import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
+import ua.zt.mezon.e52.misc.TimersServiceUtils;
 import ua.zt.mezon.e52.misc.TimersTime;
 import ua.zt.mezon.e52.spclayout.TimerTypeSelectActivity;
 
 import static android.app.PendingIntent.getService;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static ua.zt.mezon.e52.misc.TimersServiceUtils.getIdXbyId_timersTimes;
 
 
 /**
@@ -514,19 +516,19 @@ public class E52 extends CanvasWatchFaceService {
             for (TimerWorkspace tmp :
                     alTimersCategories) {
                 if (tmp.active) {
-                    ialTimersCategoriesActiveLvls[0] = allData.getIdXbyId_alTimersCategories(alTimersCategories,tmp.id);
+                    ialTimersCategoriesActiveLvls[0] = TimersServiceUtils.getIdXbyId_alTimersCategories(alTimersCategories,tmp.id);
                     if (ialTimersCategoriesActiveLvls[0]==-1) ialTimersCategoriesActiveLvls[0]=0;
                     for (TimersCategoryInWorkspace tmp1 :
                             tmp.alTimersCategoryInWorkspace) {
                         if (tmp1.active) {
-                            ialTimersCategoriesActiveLvls[1] = tmp.getIdXbyId_alTimersCategoryInWorkspace(tmp.alTimersCategoryInWorkspace,  tmp1.id);
+                            ialTimersCategoriesActiveLvls[1] = TimersServiceUtils.getIdXbyId_alTimersCategoryInWorkspace(tmp.alTimersCategoryInWorkspace,  tmp1.id);
                             if (ialTimersCategoriesActiveLvls[1]==-1) ialTimersCategoriesActiveLvls[1]=0;
                             string_TIMER = tmp1.sTmrCategorySymbol;
                             for (TimersTime tmp2 :
                                     tmp1.timersTimes) {
                                 if (tmp2.active) {
 
-                                    ialTimersCategoriesActiveLvls[2] =tmp1.getIdXbyId_timersTimes( tmp1.timersTimes,tmp2.id);
+                                    ialTimersCategoriesActiveLvls[2] =TimersServiceUtils.getIdXbyId_timersTimes( tmp1.timersTimes,tmp2.id);
                                     if (ialTimersCategoriesActiveLvls[2]==-1) ialTimersCategoriesActiveLvls[2]=0;
                                     lTimerSetTimeMls = tmp2.time;
                                 }
@@ -1934,15 +1936,6 @@ public class E52 extends CanvasWatchFaceService {
 
 
 
-        /**
-         * Cancels an old countdown and deletes the dataItem.
-         *
-         * @param notifyMgr the notification manager.
-         */
-        private void cancelCountdown(NotificationManager notifyMgr) {
-            notifyMgr.cancel(Constants.NOTIFICATION_TIMER_EXPIRED);
-        }
-
 
         @Override
         public void onServiceConnected(MySpcIntentService service) {
@@ -2078,9 +2071,7 @@ public class E52 extends CanvasWatchFaceService {
                             int tmpid = alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
                                     .timersTimes.get(ialTimersCategoriesActiveLvls[2]).nextid;
 
-                            ialTimersCategoriesActiveLvls[2] =alTimersCategories.get(ialTimersCategoriesActiveLvls[0])
-                                                                .alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
-                                                                 .getIdXbyId_timersTimes(
+                            ialTimersCategoriesActiveLvls[2] =getIdXbyId_timersTimes(
                                                                          alTimersCategories.get(ialTimersCategoriesActiveLvls[0])
                                                                                  .alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1])
                                                                         .timersTimes, tmpid);

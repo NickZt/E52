@@ -38,10 +38,12 @@ import ua.zt.mezon.e52.R;
 import ua.zt.mezon.e52.core.MySpcIntentService;
 import ua.zt.mezon.e52.misc.TimerWorkspace;
 import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
+import ua.zt.mezon.e52.misc.TimersServiceUtils;
 import ua.zt.mezon.e52.misc.TimersTime;
 import ua.zt.mezon.e52.servsubtps.ColorGenerator;
 import ua.zt.mezon.e52.servsubtps.TextDrawable;
 
+import static ua.zt.mezon.e52.misc.TimersServiceUtils.getIdXbyId_alTimersCategoryInWorkspace;
 
 
 /**
@@ -117,19 +119,19 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
         for (TimerWorkspace tmp :
                 alTimersCategories) {
             if (tmp.active) {
-                ialTimersCategoriesActiveLvls[0] = allData.getIdXbyId_alTimersCategories(alTimersCategories,tmp.id);
+                ialTimersCategoriesActiveLvls[0] = TimersServiceUtils.getIdXbyId_alTimersCategories(alTimersCategories,tmp.id);
                 if (ialTimersCategoriesActiveLvls[0]==-1) ialTimersCategoriesActiveLvls[0]=0;
                 for (TimersCategoryInWorkspace tmp1 :
                         tmp.alTimersCategoryInWorkspace) {
                     if (tmp1.active) {
-                        ialTimersCategoriesActiveLvls[1] = tmp.getIdXbyId_alTimersCategoryInWorkspace(tmp.alTimersCategoryInWorkspace,  tmp1.id);
+                        ialTimersCategoriesActiveLvls[1] =TimersServiceUtils.getIdXbyId_alTimersCategoryInWorkspace(tmp.alTimersCategoryInWorkspace,  tmp1.id);
                         if (ialTimersCategoriesActiveLvls[1]==-1) ialTimersCategoriesActiveLvls[1]=0;
                         string_TIMER = tmp1.sTmrCategorySymbol;
                         for (TimersTime tmp2 :
                                 tmp1.timersTimes) {
                             if (tmp2.active) {
 
-                                ialTimersCategoriesActiveLvls[2] =tmp1.getIdXbyId_timersTimes( tmp1.timersTimes,tmp2.id);
+                                ialTimersCategoriesActiveLvls[2] =TimersServiceUtils.getIdXbyId_timersTimes( tmp1.timersTimes,tmp2.id);
                                 if (ialTimersCategoriesActiveLvls[2]==-1) ialTimersCategoriesActiveLvls[2]=0;
                                // lTimerSetTimeMls = tmp2.time;
                             }
@@ -271,12 +273,12 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                         spanText.setSpan(new ForegroundColorSpan(Color.parseColor(getActivity().getString(R.color.greenprimary))),0,itemView.mname.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         itemView.imgView.setCircleBorderColor(Color.parseColor(getActivity().getString(R.color.greenprimary)));
                         TextDrawable drawable = mDrawableBuilderChildActive.build( itemView.msSymbol, mColorGenerator.getColor( itemView.mname));
-                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, (int) ( itemView.imgView.getLayoutParams().width*1.4), (int) (itemView.imgView.getLayoutParams().height*1.4)));
 
                     } else {
                         TextDrawable drawable = mDrawableBuilderChildPassive.build(itemView.msSymbol,mColorGenerator.getColor( itemView.mname));
                         /// mDrawableBuilderChildActive
-                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, (int) ( itemView.imgView.getLayoutParams().width*1.4), (int) (itemView.imgView.getLayoutParams().height*1.4)));
                     }
 
                     itemView.txtView.setText(spanText);
@@ -300,12 +302,12 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                         spanText.setSpan(new ForegroundColorSpan(Color.parseColor(getActivity().getString(R.color.greenprimary_lvl))),0,itemView.mname.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         itemView.imgView.setCircleBorderColor(Color.parseColor(getActivity().getString(R.color.greenprimary_lvl)));
                         TextDrawable drawable = mDrawableBuilderHeaderActive.build( itemView.msSymbol, mColorGenerator.getColor( itemView.mname));
-                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, (int) ( itemView.imgView.getLayoutParams().width*1.4), (int) (itemView.imgView.getLayoutParams().height*1.4)));
 
                     } else {
                         TextDrawable drawable = mDrawableBuilderHeaderPassive.build(itemView.msSymbol,mColorGenerator.getColor( itemView.mname));
                         /// mDrawableBuilderChildActive
-                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, (int) ( itemView.imgView.getLayoutParams().width*1.4), (int) (itemView.imgView.getLayoutParams().height*1.4)));
                     }
                     itemView.txtView.setText(spanText);
                 }
@@ -321,9 +323,9 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                     String tmps =TimeInMilisToStr(alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1]).timersTimes.get(i).time);
                 //    itemView.descripttxtView.setText(tmps);
                    // return alTimersCategories.get(ialTimersCategoriesActiveLvls[1]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[2]).timersTimes.size();
-                    String ts=itemView.mname+ tmps;//"\n"+
+                    String ts=itemView.mname+" \n "+ tmps;//"\n"+
                     Spannable spanText = new SpannableString(ts);
-                    spanText.setSpan(new RelativeSizeSpan(0.3f),itemView.mname.length(),ts.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spanText.setSpan(new RelativeSizeSpan(0.4f),itemView.mname.length(),ts.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 
 
@@ -338,7 +340,7 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
 
 
 
-                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, (int) ( itemView.imgView.getLayoutParams().width*1.4), (int) (itemView.imgView.getLayoutParams().height*1.4)));
 
 
 
@@ -347,7 +349,7 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                         TextDrawable drawable = mDrawableBuilderChildPassive.build(itemView.msSymbol,mColorGenerator.getColor( itemView.mname));
                         /// mDrawableBuilderChildActive
                        // drawable.s
-                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, (int) ( itemView.imgView.getLayoutParams().width*1.4), (int) (itemView.imgView.getLayoutParams().height*1.4)));
 //                        itemView.imgView.dr
                     }
                     itemView.txtView.setText(spanText);
@@ -508,8 +510,8 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                 imgView.setCircleRadius(mExpandCircleRadius);
                 txtView.setAlpha(EXPAND_LABEL_ALPHA);
             }
-            imgView.animate().scaleX(1f).scaleY(1f).alpha(1);
-            txtView.animate().scaleX(1.4f).scaleY(1.4f).alpha(1);
+            imgView.animate().scaleX(1.2f).scaleY(1.2f).alpha(1);
+            txtView.animate().scaleX(1.3f).scaleY(1.3f).alpha(1);
             imgView.setAlpha(1f);
             txtView.setAlpha(1f);
         }

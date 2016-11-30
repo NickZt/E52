@@ -5,7 +5,7 @@ package ua.zt.mezon.e52;
  */
 public final class Constants {
 
-    public static final int NOTIFICATION_TIMER_EXPIRED = 1;
+//    public static final int NOTIFICATION_TIMER_EXPIRED = 1;
 
     private Constants() {
     }

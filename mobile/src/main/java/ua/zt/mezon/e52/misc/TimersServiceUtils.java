@@ -1,5 +1,9 @@
 package ua.zt.mezon.e52.misc;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 /**
@@ -60,7 +64,7 @@ public class TimersServiceUtils {
 
         return -1;
     }
-    public boolean isValidId_alTimersCategoryInWorkspace (ArrayList <TimersCategoryInWorkspace> alTmp, int id) {
+    public static boolean isValidId_alTimersCategoryInWorkspace(ArrayList<TimersCategoryInWorkspace> alTmp, int id) {
 
         for (TimersCategoryInWorkspace z: alTmp
                 ) {
@@ -70,5 +74,10 @@ public class TimersServiceUtils {
         }
 
         return true;
+    }
+    public static String convertTimersCategoryInWorkspace(TimersCategoryInWorkspace tmp) {
+        Type listOfConvertObject = new TypeToken<TimersCategoryInWorkspace>(){}.getType();
+        Gson gson = new Gson();
+        return gson.toJson(tmp,listOfConvertObject);
     }
 }

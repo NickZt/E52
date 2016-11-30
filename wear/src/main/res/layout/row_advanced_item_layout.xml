@@ -7,8 +7,8 @@
     <android.support.wearable.view.CircledImageView
         android:id="@+id/image"
         android:alpha="0.5"
-    android:scaleType="fitCenter"
-        android:layout_marginLeft="16dp"
+
+        android:layout_marginLeft="1dp"
         app:circle_border_color="#FFFFFFFF"
         app:circle_border_width="4dp"
         app:circle_color="@android:color/holo_blue_dark"
@@ -25,13 +25,13 @@
         android:fontFamily="sans-serif-condensed-light"
         android:gravity="center_vertical"
         android:layout_height="52dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginRight="8dp"
         android:layout_width="wrap_content"
         android:textColor="@color/white"
 
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="76dp"
-        android:textSize="18sp"
+        android:layout_marginLeft="68dp"
+        android:textSize="16sp"
 
         />
 

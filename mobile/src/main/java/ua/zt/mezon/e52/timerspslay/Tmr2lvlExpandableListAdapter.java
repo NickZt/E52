@@ -4,6 +4,7 @@ package ua.zt.mezon.e52.timerspslay;
  * Created by MezM on 09.11.2016.
  */
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -12,6 +13,10 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
@@ -23,7 +28,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,10 +44,12 @@ import java.util.List;
 import ua.zt.mezon.e52.AllData;
 import ua.zt.mezon.e52.R;
 import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
+import ua.zt.mezon.e52.misc.TimersServiceUtils;
 import ua.zt.mezon.e52.misc.TimersTime;
 import ua.zt.mezon.e52.servsubtps.ColorGenerator;
 import ua.zt.mezon.e52.servsubtps.TextDrawable;
 
+import static android.R.attr.name;
 import static android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 
 //
@@ -76,22 +87,22 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         {
 
             if (z.active){
-                this.data.add(new Item( HEADER, z.name,z.sTmrCategorySymbol,z.active,z.id));
+                this.data.add(new Item(indata.indexOf(z), HEADER, z.name,z.sTmrCategorySymbol,z.active,z.id));
                 // Item( HEADER, z.name) public Item(int type, String text, String sTmrCategorySymbol, boolean active, int id)
                 for (TimersTime tmp_child:
                         z.timersTimes) {
-                    this.data.add(new Item( CHILD, tmp_child.name, "",tmp_child.active,tmp_child.id,tmp_child.time,tmp_child.repeats,tmp_child.nextid,tmp_child.nextDo,tmp_child.maxrepeats ));
+                    this.data.add(new Item(indata.indexOf(z), CHILD, tmp_child.name, "",tmp_child.active,tmp_child.id,tmp_child.time,tmp_child.repeats,tmp_child.nextid,tmp_child.nextDo,tmp_child.maxrepeats ));
                     //  public Item(int type, String text, String sTmrCategorySymbol, boolean active,  int id, long time,  int repeats, int nextid, int nextDo, int maxrepeats ) {
                 }
             } else {
 
-                Item Tmp_add_inner_places = new Item( HEADER, z.name,z.sTmrCategorySymbol,z.active,z.id);
+                Item Tmp_add_inner_places = new Item(indata.indexOf(z), HEADER, z.name,z.sTmrCategorySymbol,z.active,z.id);
                 Tmp_add_inner_places.invisibleChildren = new ArrayList<>();
 
                 for (TimersTime tmp_child:
                         z.timersTimes) {
 //                        this.data.add(new  Item( CHILD, tmp_child.name));
-                    Tmp_add_inner_places.invisibleChildren.add(new Item( CHILD, tmp_child.name, "",tmp_child.active,tmp_child.id,tmp_child.time,tmp_child.repeats,tmp_child.nextid,tmp_child.nextDo,tmp_child.maxrepeats ));
+                    Tmp_add_inner_places.invisibleChildren.add(new Item( indata.indexOf(z),CHILD, tmp_child.name, "",tmp_child.active,tmp_child.id,tmp_child.time,tmp_child.repeats,tmp_child.nextid,tmp_child.nextDo,tmp_child.maxrepeats ));
                 }
                 this.data.add(Tmp_add_inner_places);
 
@@ -369,30 +380,11 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 public boolean onMenuItemClick(MenuItem item) {
                     switch (item.getItemId())  {
                         case CM_DELETE: {
-                            if (SHOW_DEBUG)   Toast.makeText(itemView.getContext(), "Выбран пункт DELETE", Toast.LENGTH_LONG)
-                                    .show();
-//                    if (SHOW_DEBUG)   Toast.makeText( getContext(), "Delete POI>"+mPOIItem.toString(), Toast.LENGTH_SHORT).show();
-//                    try {
-//                        dbWclass.delPOIs(mPOIItem);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                    poi.remove(mPOIItem);
-//                    dbWclass.load_INIT_JSON();
-//                    dbWclass.For_Detail_DataAdapterInternalRescan();
-//                    poiRescan();
-//                    adapter.notifyDataSetChanged();
-//                    // adapter.notifyItemRemoved(mPOIpos);// DataAdapter.notifyItemRemoved(mPOIpos);
-//                    //adapter.notifyItemRemoved(mPOIItem);
-
+                            cm_DeleteItemInHeader();
                             break;
                         }
                         case CM_EDIT: {
-//                    if (SHOW_DEBUG)   Toast.makeText(getContext(), "Выбран пункт CM_EDIT", Toast.LENGTH_LONG)
-//                            .show();
-                            if (SHOW_DEBUG) {
-                                //  Toast.makeText(getContext(), "CM_EDIT POI>" + mCurrItem.toString(), Toast.LENGTH_SHORT).show();
-                            }
+                            cm_EditItemInHeader();
                             break;
                         }
                         case CM_SET_ACTIVE: {
@@ -402,7 +394,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                             break;
 
                         case CM_ADD: {
-
+                            cm_AddCopyItemInHeader();
 
                         }
                             break;
@@ -431,19 +423,19 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     .setOnMenuItemClickListener(this);
 
             MenuItem myActionItem=menu.getMenu().add(0, CM_EDIT, 0, R.string.menu_edit);
-            myActionItem.setEnabled(false);
+            myActionItem.setEnabled(true);
             myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
             myActionItem.setOnMenuItemClickListener(this);
 
             menu.getMenu().add(0, CM_DELETE, 0, R.string.menu_Delete)
                     .setIcon(R.drawable.ic_andr_cross)
-                    .setEnabled(false)
+                    .setEnabled(true)
                     .setOnMenuItemClickListener(this)
                     .setEnabled(indata.get(mCurrItem.id).timersTimes.isEmpty());
 
             menu.getMenu().add(0, CM_ADD, 0, R.string.menu_add)
                     .setIcon(android.R.drawable.sym_contact_card)
-                    .setEnabled(false)
+                    .setEnabled(true)
                     .setOnMenuItemClickListener(this);
         }
 
@@ -452,16 +444,12 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
             switch (item.getItemId())  {
                 case CM_DELETE: {
-
+                    cm_DeleteItemInHeader();
 
                     break;
                 }
                 case CM_EDIT: {
-//                    if (SHOW_DEBUG)   Toast.makeText(getContext(), "Выбран пункт CM_EDIT", Toast.LENGTH_LONG)
-//                            .show();
-                    if (SHOW_DEBUG) {
-                        //  Toast.makeText(getContext(), "CM_EDIT POI>" + mCurrItem.toString(), Toast.LENGTH_SHORT).show();
-                    }
+                   cm_EditItemInHeader();
                     break;
                 }
                 case CM_SET_ACTIVE: {
@@ -469,38 +457,8 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     break;
                 }
                 case CM_ADD: {
-//                    if (SHOW_DEBUG)   Toast.makeText(getContext(), "Выбран пункт ADD POI", Toast.LENGTH_LONG)
-//                            .show();
-//                    if (SHOW_DEBUG)   Toast.makeText( getContext(), "ADDPOI>"+mPOIItem.toString(), Toast.LENGTH_SHORT).show();
-//                    Cicer_poi tmpItem = new Cicer_poi();
-//                    tmpItem.setCat(mPOIItem.getCat());
-//                    tmpItem.setName("Zhukova "+"sometext proba ");
-//                    tmpItem.setLang(50.280992525335744);
-//                    tmpItem.setLongit(28.619921183714403);
-//                    tmpItem.setWhs(221);
-//                    tmpItem.setAlt( 2123);
-//                    tmpItem.setBearing(221);
-//                    tmpItem.setSpeed(22233);
-//                    tmpItem.setSale_id(R.mipmap.ic_launcher);
-//                    tmpItem.setiddecor(R.mipmap.ic_launcher);
-//
-////                       try {
-////                           tmpItem=   dbWclass.addPOIs( tmpItem);
-////                       } catch (IOException e) {
-////                           e.printStackTrace();
-////                       }
-////
-////                       poi.add( tmpItem);
-//                    //   adapter.notifyItemInserted(mPOIpos);
-//                    // adapter.notifyItemRemoved(mPOIItem);
-//                    dbWclass.load_INIT_JSON();
-//                    dbWclass.For_Detail_DataAdapterInternalRescan();
-//
-//                    poiRescan();
-//
-//                    //   DataAdapter.notifyDataSetChanged();
-//                    //  adapter.notifyDataSetChanged();// DataAdapter.notifyItemRemoved(mPOIpos);
-//                    //adapter.notifyItemRemoved(mPOIItem);
+                    cm_AddCopyItemInHeader();
+
 
 
 
@@ -514,18 +472,203 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
             return true;
         }
+        private void cm_EditItemInHeader() {
+
+//            TimersCategoryInWorkspace tmpItem = new TimersCategoryInWorkspace();
+//            tmpItem.name=indata.get(mCurrItem.idx).name;
+//            tmpItem.id=indata.size();
+//            while (!TimersServiceUtils.isValidId_alTimersCategoryInWorkspace(indata,tmpItem.id)){
+//                tmpItem.id++;
+//            }
+//            tmpItem.sTmrCategorySymbol=indata.get(mCurrItem.idx).sTmrCategorySymbol;
+//            tmpItem.timersTimes= new ArrayList<>();
+//            tmpItem.timersTimes.addAll(indata.get(mCurrItem.idx).timersTimes);
+//            tmpItem.idDescription=indata.get(mCurrItem.idx).idDescription;
+//            tmpItem.active=false;
+
+            final Dialog dialog = new Dialog(context);
+            dialog.setContentView(R.layout.time_header_dialog); //layout for dialog
+            dialog.setTitle("Edit TimersCategory");
+            dialog.setCancelable(false); //none-dismiss when touching outside Dialog
+            // set the custom dialog components - texts and image
+            EditText name = (EditText) dialog.findViewById(R.id.name);
+            name.setText(indata.get(mCurrItem.idx).name);
+            EditText sCategorySymbol = (EditText) dialog.findViewById(R.id.CategorySymbol);
+            sCategorySymbol.setTypeface(allData.Symbol_TYPEFACE);
+            sCategorySymbol.setText(indata.get(mCurrItem.idx).sTmrCategorySymbol);
+            Spinner spnGender = (Spinner) dialog.findViewById(R.id.gender);
+            View btnAdd = dialog.findViewById(R.id.btn_ok);
+            View btnCancel = dialog.findViewById(R.id.btn_cancel);
+            //set spinner adapter
+
+            String[] mAllIcons = context.getResources().getStringArray(R.array.all_icons);
+
+
+
+            ArrayAdapter<String> spnAdapter;//gendersList
+            spnAdapter = new ArrayAdapter<String>(context,
+                    R.layout.spec_spinner_item, mAllIcons) {
+                @Override
+                public View  getDropDownView(int position, View convertView, ViewGroup parent)
+                {
+                    View v = super.getDropDownView(position, convertView, parent);
+                    ((TextView) v).setTypeface((allData.Symbol_TYPEFACE));//Typeface for dropdown view
+                    // ((TextView) v).setBackgroundColor(Color.parseColor("#BBfef3da"));
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
+                    return v;
+                }
+
+                @NonNull
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent)
+                {
+                    View v = super.getView(position, convertView, parent);
+                    ((TextView) v).setTypeface(allData.Symbol_TYPEFACE);//Typeface for normal view
+
+                    return v;
+                }
+            };
+            //spnAdapter.
+
+
+            spnGender.setAdapter(spnAdapter);
+//            TextView spcname = (TextView) spnGender.findViewById(R.id.text1);
+//            spcname.setTypeface(allData.Symbol_TYPEFACE);
+            //set handling event for 2 buttons and spinner
+            spnGender.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view,int position, long id) {
+                    sCategorySymbol.setText(mAllIcons[position]);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+            btnAdd.setOnClickListener(view -> {      //onConfirmListener(tmpItem, dialog)
+                indata.get(mCurrItem.idx).name = String.valueOf(name.getText());
+                indata.get(mCurrItem.idx).sTmrCategorySymbol= String.valueOf(sCategorySymbol.getText());
+               // indata.add( tmpItem);
+                refreshInternalData(indata);
+                dialog.dismiss();
+
+            });
+            btnCancel.setOnClickListener(view -> {
+                // do nothing
+                dialog.dismiss();
+            });
+            dialog.show();
+
+        }
+        private void cm_AddCopyItemInHeader() {
+
+            TimersCategoryInWorkspace tmpItem = new TimersCategoryInWorkspace();
+            tmpItem.name=indata.get(mCurrItem.idx).name;
+            tmpItem.id=indata.size();
+            while (!TimersServiceUtils.isValidId_alTimersCategoryInWorkspace(indata,tmpItem.id)){
+                tmpItem.id++;
+            }
+            tmpItem.sTmrCategorySymbol=indata.get(mCurrItem.idx).sTmrCategorySymbol;
+            tmpItem.timersTimes= new ArrayList<>();
+            tmpItem.timersTimes.addAll(indata.get(mCurrItem.idx).timersTimes);
+            tmpItem.idDescription=indata.get(mCurrItem.idx).idDescription;
+            tmpItem.active=false;
+
+            final Dialog dialog = new Dialog(context);
+            dialog.setContentView(R.layout.time_header_dialog); //layout for dialog
+            dialog.setTitle("Add a new TimersCategory");
+            dialog.setCancelable(false); //none-dismiss when touching outside Dialog
+            // set the custom dialog components - texts and image
+            EditText name = (EditText) dialog.findViewById(R.id.name);
+            name.setText(tmpItem.name);
+            EditText sCategorySymbol = (EditText) dialog.findViewById(R.id.CategorySymbol);
+            sCategorySymbol.setTypeface(allData.Symbol_TYPEFACE);
+            sCategorySymbol.setText(tmpItem.sTmrCategorySymbol);
+            Spinner spnGender = (Spinner) dialog.findViewById(R.id.gender);
+            View btnAdd = dialog.findViewById(R.id.btn_ok);
+            View btnCancel = dialog.findViewById(R.id.btn_cancel);
+            //set spinner adapter
+
+            String[] mAllIcons = context.getResources().getStringArray(R.array.all_icons);
+
+
+
+            ArrayAdapter<String> spnAdapter;//gendersList
+            spnAdapter = new ArrayAdapter<String>(context,
+                    R.layout.spec_spinner_item, mAllIcons) {
+                @Override
+                public View  getDropDownView(int position, View convertView, ViewGroup parent)
+                {
+                    View v = super.getDropDownView(position, convertView, parent);
+                    ((TextView) v).setTypeface((allData.Symbol_TYPEFACE));//Typeface for dropdown view
+                   // ((TextView) v).setBackgroundColor(Color.parseColor("#BBfef3da"));
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,20);
+                    return v;
+                }
+
+                @NonNull
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent)
+                {
+                    View v = super.getView(position, convertView, parent);
+                    ((TextView) v).setTypeface(allData.Symbol_TYPEFACE);//Typeface for normal view
+
+                    return v;
+                }
+            };
+            //spnAdapter.
+
+
+            spnGender.setAdapter(spnAdapter);
+//            TextView spcname = (TextView) spnGender.findViewById(R.id.text1);
+//            spcname.setTypeface(allData.Symbol_TYPEFACE);
+            //set handling event for 2 buttons and spinner
+            spnGender.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view,int position, long id) {
+                    tmpItem.sTmrCategorySymbol=mAllIcons[position];
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+            btnAdd.setOnClickListener(view -> {      //onConfirmListener(tmpItem, dialog)
+                tmpItem.name = String.valueOf(name.getText());
+                tmpItem.sTmrCategorySymbol= String.valueOf(sCategorySymbol.getText());
+                indata.add( tmpItem);
+                refreshInternalData(indata);
+                dialog.dismiss();
+
+            });
+            btnCancel.setOnClickListener(view -> {
+               // do nothing
+                dialog.dismiss();
+            });
+            dialog.show();
+
+        }
+
+        private View.OnClickListener onConfirmListener(TimersCategoryInWorkspace tmpItem, Dialog dialog) {
+
+            return null;
+
+        }
+
 
         private void cm_SetActiveItemInHeader() {
             for (TimersCategoryInWorkspace tmp:
                  indata) {
                 tmp.active=false;
             }
-            indata.get(mCurrItem.id).active=true;
+            indata.get(mCurrItem.idx).active=true;
             refreshInternalData(indata);
         }
         private void cm_DeleteItemInHeader() { //if not empty no del
-            if (indata.get(mCurrItem.id).timersTimes.isEmpty() ) {
-                indata.remove(mCurrItem.id);
+            if (indata.get(mCurrItem.idx).timersTimes.isEmpty() ) {
+                indata.remove(mCurrItem.idx);
                 refreshInternalData(indata);
             }
 
@@ -566,6 +709,8 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     .setOnMenuItemClickListener(this);
         }
     }
+
+
 
     /**
      * ListChildViewHolder
@@ -612,6 +757,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         public List<Item> invisibleChildren;
 
         public int id;
+        public int idx;
         public long time; //TimeUnit. ##### .toMillis(1)
         public int repeats;
         public int maxrepeats;
@@ -627,7 +773,8 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         }
 
 
-        public Item(int type, String text, String sTmrCategorySymbol, boolean active, int id) {
+        public Item(int idx,int type, String text, String sTmrCategorySymbol, boolean active, int id) {
+            this.idx = idx;
             this.type = type;
             this.text = text;
             this.sTmrCategorySymbol = sTmrCategorySymbol;
@@ -635,7 +782,9 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             this.id = id;
         }
 
-        public Item(int type, String text, String sTmrCategorySymbol, boolean active,  int id, long time,  int repeats, int nextid, int nextDo, int maxrepeats ) {
+        public Item(int idx, int type, String text, String sTmrCategorySymbol, boolean active,  int id, long time,  int repeats, int nextid, int nextDo, int maxrepeats ) {
+            this.idx = idx;
+            this.type = type;
             this.type = type;
             this.text = text;
             this.time = time;
