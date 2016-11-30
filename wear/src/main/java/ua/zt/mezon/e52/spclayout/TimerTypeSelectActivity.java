@@ -7,6 +7,7 @@ import android.support.wearable.view.GridPagerAdapter;
 import android.support.wearable.view.WatchViewStub;
 
 import ua.zt.mezon.e52.R;
+import ua.zt.mezon.e52.servsubtps.GridOneRowViewPager;
 
 public class TimerTypeSelectActivity extends Activity   {
     private GridOneRowViewPager pager;

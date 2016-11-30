@@ -7,6 +7,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import ua.zt.mezon.e52.servsubtps.ViewPagerAdapter;
+
 public class MainActivity extends AppCompatActivity {
    /// timePicker.setIs24HourView(true);
     private AllData allData = AllData.getInstance();

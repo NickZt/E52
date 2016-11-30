@@ -3,19 +3,29 @@ package ua.zt.mezon.e52.spclayout;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Fragment;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.view.CircledImageView;
 import android.support.wearable.view.WearableListView;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -29,8 +39,10 @@ import ua.zt.mezon.e52.core.MySpcIntentService;
 import ua.zt.mezon.e52.misc.TimerWorkspace;
 import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
 import ua.zt.mezon.e52.misc.TimersTime;
+import ua.zt.mezon.e52.servsubtps.ColorGenerator;
+import ua.zt.mezon.e52.servsubtps.TextDrawable;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
+
 
 /**
  * Created by MezM on 23.11.2016.
@@ -48,12 +60,59 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
     private float mDefaultCircleRadius;
     private float mSelectedCircleRadius;
 
+    private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL;
+    private TextDrawable.IBuilder mDrawableBuilderHeaderActive,mDrawableBuilderHeaderPassive;
+    private TextDrawable.IBuilder mDrawableBuilderChildActive,mDrawableBuilderChildPassive;
 
 
 
     private String string_TIMER; //symbol
+    void iniDrwbBuild() {
+        mDrawableBuilderHeaderActive = TextDrawable.builder()
+                .beginConfig()
+             //   .withBorder(4)
+                .useFont(allData.Symbol_TYPEFACE)
+                .fontSize(toPx(52))
+                //  .bold()
+                .endConfig()
+               // .roundRect(10);
+                .round();
+        mDrawableBuilderHeaderPassive = TextDrawable.builder()
+                .beginConfig()
+              //  .withBorder(4)
+                .useFont(allData.Symbol_TYPEFACE)
+                .fontSize(toPx(52))
+                //  .bold()
+                .endConfig()
+                .round();
+        mDrawableBuilderChildActive = TextDrawable.builder()
+                .beginConfig()
+                .bold()
+                //.withBorder(4)
+                .toUpperCase()
+                .endConfig()
+                .round();
+               // .roundRect(10);
+        mDrawableBuilderChildPassive = TextDrawable.builder()
+                .beginConfig()
+                .bold()
+                //.withBorder(4)
+                .toUpperCase()
+                .endConfig()
+                .round();
+    }
 
-    public void setUpInternalTimers() {
+    private int toPx(int dp) {
+
+            Resources resources = getActivity().getResources();
+            return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.getDisplayMetrics());
+
+    }
+
+    /**
+     * setup internal cache
+     */
+    void setUpInternalTimers() {
 
         for (TimerWorkspace tmp :
                 alTimersCategories) {
@@ -98,7 +157,7 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
         alTimersCategories = allData.getAlTimersCategories();
 
         setUpInternalTimers();
-
+        iniDrwbBuild();
         mDefaultCircleRadius = getResources().getDimension(R.dimen.default_settings_circle_radius);
         mSelectedCircleRadius = getResources().getDimension(R.dimen.selected_settings_circle_radius);
         mAdapter = new MyListAdapter();
@@ -137,11 +196,6 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                 }
                 break;
                 case 2:{
-//                    for (TimersTime tmp2 :
-//                            alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1]).timersTimes) {
-//                        tmp2.active=false;
-//                    }
-
 
                     alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1]).timersTimes.get(itemView.mindx).active=true;
                     alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1]).timersTimes.get(ialTimersCategoriesActiveLvls[2]).active=false;
@@ -209,7 +263,23 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                     itemView.msSymbol=String.valueOf(alTimersCategories.get(i).name.charAt(0));
                     itemView.bisSymbolSpc =false;
                     itemView.isActive=alTimersCategories.get(i).active;
+                    String ts=itemView.mname;//"\n"+
+                    Spannable spanText = new SpannableString(ts);
+                    if (itemView.isActive) {
+                        // itemView.txtView.setBackgroundColor(Color.GREEN);
+                        //itemView.imgView.setCircleBorderWidth(2dp);
+                        spanText.setSpan(new ForegroundColorSpan(Color.parseColor(getActivity().getString(R.color.greenprimary))),0,itemView.mname.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        itemView.imgView.setCircleBorderColor(Color.parseColor(getActivity().getString(R.color.greenprimary)));
+                        TextDrawable drawable = mDrawableBuilderChildActive.build( itemView.msSymbol, mColorGenerator.getColor( itemView.mname));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
 
+                    } else {
+                        TextDrawable drawable = mDrawableBuilderChildPassive.build(itemView.msSymbol,mColorGenerator.getColor( itemView.mname));
+                        /// mDrawableBuilderChildActive
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                    }
+
+                    itemView.txtView.setText(spanText);
                 }
                 break;
                 case 1:{
@@ -220,6 +290,24 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                     itemView.bisSymbolSpc =true;
                     itemView.isActive=alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(i).active;
                    // return alTimersCategories.get(ialTimersCategoriesActiveLvls[1]).alTimersCategoryInWorkspace.size();
+
+                    String ts=itemView.mname;//"\n"+
+                    Spannable spanText = new SpannableString(ts);
+
+                    if (itemView.isActive) {
+                        // itemView.txtView.setBackgroundColor(Color.GREEN);
+                        //itemView.imgView.setCircleBorderWidth(2dp);
+                        spanText.setSpan(new ForegroundColorSpan(Color.parseColor(getActivity().getString(R.color.greenprimary_lvl))),0,itemView.mname.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        itemView.imgView.setCircleBorderColor(Color.parseColor(getActivity().getString(R.color.greenprimary_lvl)));
+                        TextDrawable drawable = mDrawableBuilderHeaderActive.build( itemView.msSymbol, mColorGenerator.getColor( itemView.mname));
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+
+                    } else {
+                        TextDrawable drawable = mDrawableBuilderHeaderPassive.build(itemView.msSymbol,mColorGenerator.getColor( itemView.mname));
+                        /// mDrawableBuilderChildActive
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+                    }
+                    itemView.txtView.setText(spanText);
                 }
                 break;
                 case 2:{
@@ -229,8 +317,40 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
                     itemView.msSymbol=String.valueOf(alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1]).timersTimes.get(i).name.charAt(0));
                     itemView.bisSymbolSpc =false;
                     itemView.isActive=alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1]).timersTimes.get(i).active;
-
+                   // itemView.descripttxtView
+                    String tmps =TimeInMilisToStr(alTimersCategories.get(ialTimersCategoriesActiveLvls[0]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[1]).timersTimes.get(i).time);
+                //    itemView.descripttxtView.setText(tmps);
                    // return alTimersCategories.get(ialTimersCategoriesActiveLvls[1]).alTimersCategoryInWorkspace.get(ialTimersCategoriesActiveLvls[2]).timersTimes.size();
+                    String ts=itemView.mname+ tmps;//"\n"+
+                    Spannable spanText = new SpannableString(ts);
+                    spanText.setSpan(new RelativeSizeSpan(0.3f),itemView.mname.length(),ts.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+
+
+                    if (itemView.isActive) {
+                        //itemView.txtView.setBackgroundColor(Color.GREEN);
+                        //itemView.imgView.setCircleBorderWidth(2dp);
+
+                        spanText.setSpan(new ForegroundColorSpan(Color.parseColor(getActivity().getString(R.color.greenprimary))),0,itemView.mname.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        itemView.imgView.setCircleBorderColor(Color.parseColor(getActivity().getString(R.color.greenprimary)));
+                        TextDrawable drawable = mDrawableBuilderChildActive.build( itemView.msSymbol, mColorGenerator.getColor( itemView.mname));
+
+
+
+
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+
+
+
+
+                    } else {
+                        TextDrawable drawable = mDrawableBuilderChildPassive.build(itemView.msSymbol,mColorGenerator.getColor( itemView.mname));
+                        /// mDrawableBuilderChildActive
+                       // drawable.s
+                        itemView.imgView.setImageDrawable(resizeImage(drawable, itemView.imgView.getLayoutParams().width,itemView.imgView.getLayoutParams().height));
+//                        itemView.imgView.dr
+                    }
+                    itemView.txtView.setText(spanText);
                 }
                 break;
             }
@@ -238,10 +358,8 @@ public class FragmentListTimersTime extends Fragment implements WearableListView
 
 
 
-            itemView.txtView.setText(itemView.mname);
-if (itemView.isActive) {
-    itemView.txtView.setBackgroundColor(Color.GREEN);
-}
+//            itemView.txtView.setText(itemView.mname);
+
           //  Integer resourceId = listItems.get(i);
 //            CircledImageView imgView = (CircledImageView) itemView.findViewById(image);
            // itemView.imgView.te;
@@ -267,6 +385,39 @@ if (itemView.isActive) {
         }
     }
 
+    private Drawable resizeImage(TextDrawable drawable, int w, int h) {
+
+        Bitmap BitmapOrg = Bitmap.createBitmap(w,
+                h, Bitmap.Config.RGB_565
+        );
+        Canvas canvas = new Canvas(BitmapOrg);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+
+        int width = BitmapOrg.getWidth();
+        int height = BitmapOrg.getHeight();
+        int newWidth = w;
+        int newHeight = h;
+        // calculate the scale
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+        // create a matrix for the manipulation
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap resizedBitmap = Bitmap.createBitmap(BitmapOrg, 0, 0,width, height, matrix, true);
+        return new BitmapDrawable(resizedBitmap);
+
+
+    }
+
+    private String TimeInMilisToStr(long time) {
+        long second = (time / 1000) % 60;
+        long minute = (time / (1000 * 60)) % 60;
+        long hour = (time / (1000 * 60 * 60)) % 24;
+        return  String.format("%02d:%02d:%02d", hour, minute, second);
+    }
+
     public final class MyItemView extends FrameLayout implements WearableListView.OnCenterProximityListener {
         /** The duration of the expand/shrink animation. */
         private static final int ANIMATION_DURATION_MS = 750;
@@ -278,6 +429,7 @@ if (itemView.isActive) {
 
         final CircledImageView imgView;
         final TextView txtView;
+     //   final TextView descripttxtView;
         public   int mid;
         public   int mindx;
         public String mname;
@@ -302,6 +454,7 @@ if (itemView.isActive) {
             View.inflate(context, R.layout.row_advanced_item_layout, this);
             imgView = (CircledImageView) findViewById(R.id.image);
             txtView = (TextView) findViewById(R.id.name);
+          //  descripttxtView= (TextView) findViewById(timedescription);
             mFadedCircleColor = getResources().getColor(android.R.color.darker_gray);
             mChosenCircleColor = getResources().getColor(android.R.color.holo_blue_dark);
 

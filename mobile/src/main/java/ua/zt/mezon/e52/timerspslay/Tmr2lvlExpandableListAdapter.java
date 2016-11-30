@@ -36,6 +36,8 @@ import ua.zt.mezon.e52.AllData;
 import ua.zt.mezon.e52.R;
 import ua.zt.mezon.e52.misc.TimersCategoryInWorkspace;
 import ua.zt.mezon.e52.misc.TimersTime;
+import ua.zt.mezon.e52.servsubtps.ColorGenerator;
+import ua.zt.mezon.e52.servsubtps.TextDrawable;
 
 import static android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 
@@ -105,6 +107,27 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         Context context = parent.getContext();
         this.context=context;
         //   mProvider = new DrawableProvider(context);
+        iniDrwbBuild();
+        float dp = context.getResources().getDisplayMetrics().density;
+        int subItemPaddingLeft = (int) (18 * dp);
+        int subItemPaddingTopAndBottom = (int) (5 * dp);
+        LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        switch (type) {
+            case HEADER:
+                view = inflater.inflate(R.layout.tmr_list_header, parent, false);
+                ListHeaderViewHolder header = new ListHeaderViewHolder(view);
+                return header;
+            case CHILD:
+
+                view = inflater.inflate(R.layout.tmr_list_child, parent, false);
+                ListChildViewHolder header1 = new ListChildViewHolder(view);
+                return header1;
+
+        }
+        return null;
+    }
+
+    void iniDrwbBuild() {
         mDrawableBuilderHeaderActive = TextDrawable.builder()
                 .beginConfig()
                 .withBorder(4)
@@ -134,23 +157,6 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 .toUpperCase()
                 .endConfig()
                 .round();
-        float dp = context.getResources().getDisplayMetrics().density;
-        int subItemPaddingLeft = (int) (18 * dp);
-        int subItemPaddingTopAndBottom = (int) (5 * dp);
-        LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        switch (type) {
-            case HEADER:
-                view = inflater.inflate(R.layout.tmr_list_header, parent, false);
-                ListHeaderViewHolder header = new ListHeaderViewHolder(view);
-                return header;
-            case CHILD:
-
-                view = inflater.inflate(R.layout.tmr_list_child, parent, false);
-                ListChildViewHolder header1 = new ListChildViewHolder(view);
-                return header1;
-
-        }
-        return null;
     }
 
     @Override
@@ -169,11 +175,13 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 itemController.header_title.setText(item.text);
                 TextDrawable drawable;
                 if (data.get(position).active) {
-                    itemController.header_title.setBackgroundColor(Color.GREEN);
+                   // itemController.header_title.setBackgroundColor(Color.GREEN);
+                    itemController.cv.setCardBackgroundColor(Color.parseColor(context.getString(R.color.greenprimary)));//Color.GREEN0x8BC34A"#8BC34A"
                     drawable = mDrawableBuilderHeaderActive.build(item.sTmrCategorySymbol, mColorGenerator.getColor(item.text));
                     itemController.imageView.setImageDrawable(drawable);
                 } else {
                     itemController.header_title.setBackgroundColor(Color.TRANSPARENT);
+                    itemController.cv.setCardBackgroundColor(Color.WHITE);
                     drawable = mDrawableBuilderHeaderPassive.build(item.sTmrCategorySymbol, mColorGenerator.getColor(item.text));
                     // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
                     itemController.imageView.setImageDrawable(drawable);
@@ -193,7 +201,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
                 drawable.draw(canvas);
 
-                myActionItem.setIcon(resizeImage(BitmapOrg, myActionItem.getIcon().getIntrinsicHeight(),myActionItem.getIcon().getIntrinsicHeight()));
+                myActionItem.setIcon(resizeImage(BitmapOrg, myActionItem.getIcon().getIntrinsicWidth(),myActionItem.getIcon().getIntrinsicHeight()));
 
 
                 itemController.pListHeaderPopupMenuFill();
@@ -241,12 +249,14 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 itemChController.mListPos=position;
                 itemChController.child_title.setText(data.get(position).text);
                 if (data.get(position).active) {
-                    itemChController.child_title.setBackgroundColor(Color.GREEN);
+                  //  itemChController.child_title.setBackgroundColor(Color.GREEN);
+                    itemChController.cv.setCardBackgroundColor(Color.parseColor(context.getString(R.color.greenprimary_lvl)));//0x689F38
                     TextDrawable drawable = mDrawableBuilderChildActive.build(String.valueOf(item.text.charAt(0)), mColorGenerator.getRandomColor());
                     itemChController.imageView.setImageDrawable(drawable);
                 }
                 else {
                     itemChController.child_title.setBackgroundColor(Color.TRANSPARENT);
+                    itemChController.cv.setCardBackgroundColor(Color.WHITE);//0x689F38
                     TextDrawable drawable = mDrawableBuilderChildPassive.build(String.valueOf(item.text.charAt(0)),mColorGenerator.getColor(item.text));
                     /// mDrawableBuilderChildActive
                     itemChController.imageView.setImageDrawable(drawable);

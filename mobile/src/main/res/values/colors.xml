@@ -4,6 +4,11 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
+    <color name="greenprimary">#8BC34A</color>
+    <color name="greenprimary_lvl">#4CAF50</color>
+
+
+
     <color name="black_overlay">#66000000</color>
     <color name="status_bar_color">#DFF8FF</color>
     <!-- Screens background color-->

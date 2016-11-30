@@ -5,4 +5,6 @@
     <color name="wl_blue">#2878ff</color>
     <color name="wl_gray">#c1c1c1</color>
     <color name="text_color">#434343</color>
+    <color name="greenprimary">#8BC34A</color>
+    <color name="greenprimary_lvl">#4CAF50</color>
 </resources>

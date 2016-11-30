@@ -9,7 +9,7 @@
     tools:deviceIds="wear_square">
 
 
-        <ua.zt.mezon.e52.spclayout.GridOneRowViewPager
+        <ua.zt.mezon.e52.servsubtps.GridOneRowViewPager
             android:id="@+id/pager"
             android:background="@color/black"
             android:layout_width="match_parent"
