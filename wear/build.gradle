@@ -6,7 +6,7 @@ android {
     buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "ua.zt.mezon.e52"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 25
         versionCode 6
         versionName '1.6'

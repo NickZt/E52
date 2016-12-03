@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -7,17 +9,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
+        <ImageView
+
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="8dp"
+            android:scaleType="fitCenter"
+
+            app:srcCompat="@drawable/ic_cast_light"
+            android:id="@+id/imageView" />
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-            android:gravity="center"
+            android:gravity="center_vertical"
             android:text="Name"/>
         <EditText
             android:id="@+id/name"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.5"
             android:inputType="textCapSentences"/>
     </LinearLayout>
     <LinearLayout
@@ -47,13 +58,13 @@
             android:layout_gravity="center"
             android:layout_weight="0.5"
             android:gravity="center"
-            android:text="idDescription"/>
+            android:text="CategorySymbol"/>
         <Spinner
-            android:id="@+id/gender"
+            android:id="@+id/symbol_spinner"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:inputType="text"/>
+            android:inputType="text" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -66,12 +77,13 @@
             android:layout_gravity="center"
             android:layout_weight="0.5"
             android:gravity="center"
-            android:text="Ok, save"/>
+            android:text="@android:string/yes"
+            tools:text="@android:string/yes" />
         <Button
             android:id="@+id/btn_cancel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:text="cancel"/>
+            android:text="@android:string/cancel"/>
     </LinearLayout>
 </LinearLayout>

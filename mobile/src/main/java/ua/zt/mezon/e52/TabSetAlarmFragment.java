@@ -1,5 +1,6 @@
 package ua.zt.mezon.e52;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -71,33 +72,42 @@ public class TabSetAlarmFragment extends Fragment implements TimePicker.OnTimeCh
         mainActivityTimePicker = (TimePicker) view.findViewById(R.id.mainActivityTimePicker );
         mainActivityTimePicker.setIs24HourView(true);
         mainActivitySetAlarmButton = (Button)  view.findViewById(R.id.mainActivitySetAlarmButton);
-        mainActivityTimePicker.setHour(0);
-        mainActivityTimePicker.setMinute(0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mainActivityTimePicker.setHour(0);
+        } else
+        {
+            mainActivityTimePicker.setCurrentHour(0);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mainActivityTimePicker.setMinute(0);
+        }else
+        {
+            mainActivityTimePicker.setCurrentMinute(0);
+        }
         lSelTimeAlarm=0;
 
-        subscription.add(RxView.clicks( mainActivitySetAlarmButton)
-              //  .doOnNext(click -> hideKeyboard())
-              //  .flatMap(click2 -> validate())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            subscription.add(RxView.clicks( mainActivitySetAlarmButton)
+                  //  .doOnNext(click -> hideKeyboard())
+                  //  .flatMap(click2 -> validate())
 
-               // .filter(isValid -> isValid)
-                .flatMap(valid ->  rxWear.message().sendDataMapToAllRemoteNodes("/message")
-                        .putLong("alarm",  lSelTimeAlarm = TimeUnit.HOURS.toMillis(mainActivityTimePicker.getHour())+TimeUnit.MINUTES.toMillis(mainActivityTimePicker.getMinute()))
-                       // .putString("message", messageEditText.getText().toString())
-                        .toObservable()
-                ).subscribe(requestId -> Toast.makeText(view.getContext(), "Sent message "+String.valueOf(lSelTimeAlarm), Toast.LENGTH_SHORT).show(),//.make(coordinatorLayout, "Sent message", Snackbar.LENGTH_LONG).show()
-                        throwable -> {
-                            Log.e("MainActivity", "Error on sending message", throwable);
+                   // .filter(isValid -> isValid)
+                    .flatMap(valid ->  rxWear.message().sendDataMapToAllRemoteNodes("/message")
+                            .putLong("alarm",  lSelTimeAlarm = TimeUnit.HOURS.toMillis(mainActivityTimePicker.getHour())+TimeUnit.MINUTES.toMillis(mainActivityTimePicker.getMinute()))
+                           // .putString("message", messageEditText.getText().toString())
+                            .toObservable()
+                    ).subscribe(requestId -> Toast.makeText(view.getContext(), "Sent message "+String.valueOf(lSelTimeAlarm), Toast.LENGTH_SHORT).show(),//.make(coordinatorLayout, "Sent message", Snackbar.LENGTH_LONG).show()
+                            throwable -> {
+                                Log.e("MainActivity", "Error on sending message", throwable);
 
-                            if(throwable instanceof GoogleAPIConnectionException) {
-                                Toast.makeText(view.getContext(), "Android Wear app is not installed", Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(view.getContext(), "Could not send message", Toast.LENGTH_LONG).show();
-                            }
-                        })
-        );
-
-
-
+                                if(throwable instanceof GoogleAPIConnectionException) {
+                                    Toast.makeText(view.getContext(), "Android Wear app is not installed", Toast.LENGTH_LONG).show();
+                                } else {
+                                    Toast.makeText(view.getContext(), "Could not send message", Toast.LENGTH_LONG).show();
+                                }
+                            })
+            );
+        }
 
 
         return view;
@@ -105,6 +115,12 @@ public class TabSetAlarmFragment extends Fragment implements TimePicker.OnTimeCh
 
     @Override
     public void onTimeChanged(TimePicker timePicker,int hourOfDay, int minute) {
-        lSelTimeAlarm = TimeUnit.HOURS.toMillis(timePicker.getHour())+TimeUnit.MINUTES.toMillis(timePicker.getMinute());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            lSelTimeAlarm = TimeUnit.HOURS.toMillis(timePicker.getHour())+TimeUnit.MINUTES.toMillis(timePicker.getMinute());
+        }else
+        {
+            lSelTimeAlarm = TimeUnit.HOURS.toMillis(timePicker.getCurrentHour())+TimeUnit.MINUTES.toMillis(timePicker.getCurrentMinute());
+          //  mainActivityTimePicker.setCurrentMinute(0);
+        }
     }
 }

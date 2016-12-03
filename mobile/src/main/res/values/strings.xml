@@ -53,6 +53,12 @@
     <string name="menu_add"><![CDATA[Copy & Add this]]></string>
     <string name="menu_active">Set active</string>
     <string name="menu_return">"Return to "</string>
+    <string name="not_delete_Active_section">"Can not delete Active section "</string>
+    <string name="not_delete_Active_section_2">Set another section active and do that</string>
+    <string name="Delete_entry">"Delete entry "</string>
+    <string name="Delete_entry_1">"Are you sure to delete this section? \n "</string>
+    <string name="Delete_entry_2">"In this section there is a "</string>
+    <string name="Delete_entry_3">" timers"</string>
 
 
 </resources>
