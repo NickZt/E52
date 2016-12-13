@@ -45,7 +45,7 @@
     <string name="time_picker_increment_set_pm_button">Set PM</string>
     <!-- Description of the button to decrement the TimePicker's set AM value. [CHAR LIMIT=NONE] -->
     <string name="time_picker_decrement_set_am_button">Set AM</string>
-    <string name="save_all_timers_categories">Save All timers data </string>
+    <string name="save_all_timers_categories">Save All timers and send it to watch</string>
     <!-- @hide DO NOT TRANSLATE. Separator between the hour and minute elements in a TimePicker widget -->
     <string name="time_picker_separator">:</string>
     <string name="menu_Delete">"Delete "</string>

@@ -279,6 +279,7 @@ public class E52 extends CanvasWatchFaceService {
         private long tmpMillis;
         private float mLineHeight;
         private Bitmap mBackgroundBitmap;
+        private int backgroundResId = R.drawable.e52wk; //fullfunclect e52wk
         /*
                  * Google API Client used to make Google Fit requests for step data.
                  */
@@ -466,7 +467,7 @@ public class E52 extends CanvasWatchFaceService {
 
             // mBackgroundPaint.setColor(Color.BLACK);
 
-            final int backgroundResId = R.drawable.e52wk; //fullfunclect e52wk
+
 
             mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), backgroundResId);
 
@@ -946,7 +947,8 @@ public class E52 extends CanvasWatchFaceService {
                                     if (bTimerTimeStartStop) {
 
                                     } else {
-                                        if (lCurrentTimerEndTimeMls == 0) {
+
+                                        if (lCurrentTimerEndTimeMls == 0 && alTimersCategories!=null) {
                                             Intent intent = new Intent(getApplicationContext(), TimerTypeSelectActivity.class);
                                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                             startActivity(intent);
@@ -1194,13 +1196,31 @@ public class E52 extends CanvasWatchFaceService {
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
             // Draw the background.
-//            if (isInAmbientMode()) {
-//                canvas.drawColor(Color.BLACK);
-//            } else {
-//                // canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
-//
-//                canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
-//            }
+            if (isInAmbientMode()) {
+                if (backgroundResId != R.drawable.fullfunclect) {
+                    backgroundResId = R.drawable.fullfunclect; //fullfunclect e52wk felect
+
+                    mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), backgroundResId);
+
+                    mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
+                            (int) (mBackgroundBitmap.getWidth() * mScale),
+                            (int) (mBackgroundBitmap.getHeight() * mScale), true);
+//                                    // end background change
+                }
+            } else {
+                if (backgroundResId != R.drawable.e52wk) {
+                    backgroundResId = R.drawable.e52wk; //fullfunclect e52wk felect
+
+                    mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), backgroundResId);
+
+                    mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
+                            (int) (mBackgroundBitmap.getWidth() * mScale),
+                            (int) (mBackgroundBitmap.getHeight() * mScale), true);
+//                                    // end background change
+                }
+
+
+            }
             canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
             long now = System.currentTimeMillis();
             mCalendar.setTimeInMillis(now);
@@ -1259,8 +1279,11 @@ public class E52 extends CanvasWatchFaceService {
                     canvas.drawText(minuteString, mXOffsetMinute, mYOffset, mMinutePaint);
 
 //              // TODO: 24.09.2016 дата и день в позициях
-                    canvas.drawText(formatTwoDigitNumber(mCalendar.get(Calendar.SECOND)), mXCalendDayOffset, mYOffset, mSecondPaint);
 
+                    if (isInAmbientMode()) {}
+                    else {
+                        canvas.drawText(formatTwoDigitNumber(mCalendar.get(Calendar.SECOND)), mXCalendDayOffset, mYOffset, mSecondPaint);
+                    }
                     canvas.drawText(formatTwoDigitNumber(mCalendar.get(Calendar.DATE)), mXCalendDayOffset, mYCalendDayOffset, mCalendarDatePaint);
 
                     int dayOfWeek = mCalendar.get(Calendar.DAY_OF_WEEK);

@@ -22,7 +22,7 @@
     <string name="menu_active">Активизировать</string>
     <string name="menu_add">Ввести новое на основе этого</string>
     <string name="menu_edit">Редактировать</string>
-    <string name="save_all_timers_categories">Сохранить все таймеры</string>
+    <string name="save_all_timers_categories">Сохранить все таймеры и переслать в часы</string>
     <string name="set_alarm_button">Установить будильник</string>
     <string name="timers0categoryinworkspace1">Работать</string>
     <string name="timers0categoryinworkspace2">Упражнение</string>

@@ -41,16 +41,19 @@ public class MySpcIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
-        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), TAG);
-        wakeLock.setReferenceCounted(true);
-        if(! wakeLock.isHeld()) {
-            wakeLock.acquire();
-        }
+        
         String tmp = " ";
+        PowerManager.WakeLock wakeLock = null;
        // wakeLock.acquire();
         if (intent.getAction() != null) {
              tmp=intent.getAction();
+            PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+           
+            wakeLock = powerManager.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), TAG);
+            wakeLock.setReferenceCounted(true);
+            if(! wakeLock.isHeld()) {
+                wakeLock.acquire();
+            }
 
         }
 
