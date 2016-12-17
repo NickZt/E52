@@ -11,6 +11,12 @@ import java.util.ArrayList;
  */
 
 public class TimersServiceUtils {
+    public static String TimeInMilisToStr(long time) {
+        long second = (time / 1000) % 60;
+        long minute = (time / (1000 * 60)) % 60;
+        long hour = (time / (1000 * 60 * 60)) % 24;
+        return  String.format("%02d:%02d:%02d", hour, minute, second);
+    }
     public static int getIdXbyId_alTimersCategories(ArrayList<TimerWorkspace> alTmpTimersCategories, int id) {
 
         for (int i = 0; i <alTmpTimersCategories.size() ; i++) {
@@ -31,7 +37,7 @@ public class TimersServiceUtils {
 
         return -1;
     }
-    public boolean isValidId_timersTimes ( ArrayList<TimersTime> alTmp, int id) {
+    public static boolean isValidId_timersTimes(ArrayList<TimersTime> alTmp, int id) {
 
         for (TimersTime z: alTmp
                 ) {

@@ -4,7 +4,9 @@ package ua.zt.mezon.e52.timerspslay;
  * Created by MezM on 09.11.2016.
  */
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -21,6 +23,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -31,15 +36,21 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
+import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import ua.zt.mezon.e52.AllData;
 import ua.zt.mezon.e52.R;
@@ -52,60 +63,59 @@ import ua.zt.mezon.e52.servsubtps.TextDrawable;
 import static android.support.v7.widget.PopupMenu.OnMenuItemClickListener;
 
 
-
 //
 public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private static final boolean SHOW_DEBUG = true;
     public static final int HEADER = 0;
     public static final int CHILD = 1;
+    private static final boolean SHOW_DEBUG = true;
     private static final int BITMAP_WIDTH = 20;
     private static final int BITMAP_HEIGHT = 20;
-    public static ArrayList <TimersCategoryInWorkspace> indata;
-    public int currWorkSpace;
+    public static ArrayList<TimersCategoryInWorkspace> indata;
     private static List<Item> data = new ArrayList<>();
-    Context context ;
+    public int currWorkSpace;
+    Context context;
     private AllData allData = AllData.getInstance();
     private ColorGenerator mColorGenerator = ColorGenerator.MATERIAL;
-    private TextDrawable.IBuilder mDrawableBuilderHeaderActive,mDrawableBuilderHeaderPassive;
-    private TextDrawable.IBuilder mDrawableBuilderChildActive,mDrawableBuilderChildPassive;
+    private TextDrawable.IBuilder mDrawableBuilderHeaderActive, mDrawableBuilderHeaderPassive;
+    private TextDrawable.IBuilder mDrawableBuilderChildActive, mDrawableBuilderChildPassive;
 
-    public int toPx(int dp) {
-        Resources resources = context.getResources();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.getDisplayMetrics());
-    }
-    public Tmr2lvlExpandableListAdapter(ArrayList <TimersCategoryInWorkspace> indata,int currWorkSpace) {
+    public Tmr2lvlExpandableListAdapter(ArrayList<TimersCategoryInWorkspace> indata, int currWorkSpace) {
         // List<Item> data
         this.indata = indata;
-        this.currWorkSpace= currWorkSpace;
+        this.currWorkSpace = currWorkSpace;
         refreshInternalData(indata);
 
 
     }
 
+    public int toPx(int dp) {
+        Resources resources = context.getResources();
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.getDisplayMetrics());
+    }
+
     public void refreshInternalData(ArrayList<TimersCategoryInWorkspace> indata) {
-        if ( this.data != null) {
+        if (this.data != null) {
             data.clear();
         }
-        for (TimersCategoryInWorkspace z  : indata)
-        {
+        for (TimersCategoryInWorkspace z : indata) {
 
-            if (z.active){
-                this.data.add(new Item(indata.indexOf(z), HEADER, z.name,z.sTmrCategorySymbol,z.active,z.id));
+            if (z.active) {
+                this.data.add(new Item(indata.indexOf(z), HEADER, z.name, z.sTmrCategorySymbol, z.active, z.id));
                 // Item( HEADER, z.name) public Item(int type, String text, String sTmrCategorySymbol, boolean active, int id)
-                for (TimersTime tmp_child:
+                for (TimersTime tmp_child :
                         z.timersTimes) {
-                    this.data.add(new Item(z.timersTimes.indexOf( tmp_child),indata.indexOf(z), CHILD, tmp_child.name, "",tmp_child.active,tmp_child.id,tmp_child.time,tmp_child.repeats,tmp_child.nextid,tmp_child.nextDo,tmp_child.maxrepeats ));
+                    this.data.add(new Item(z.timersTimes.indexOf(tmp_child), indata.indexOf(z), CHILD, tmp_child.name, "", tmp_child.active, tmp_child.id, tmp_child.time, tmp_child.repeats, tmp_child.nextid, tmp_child.nextDo, tmp_child.maxrepeats));
                     //  public Item(int type, String text, String sTmrCategorySymbol, boolean active,  int id, long time,  int repeats, int nextid, int nextDo, int maxrepeats ) {
                 }
             } else {
 
-                Item Tmp_add_inner_places = new Item(indata.indexOf(z), HEADER, z.name,z.sTmrCategorySymbol,z.active,z.id);
+                Item Tmp_add_inner_places = new Item(indata.indexOf(z), HEADER, z.name, z.sTmrCategorySymbol, z.active, z.id);
                 Tmp_add_inner_places.invisibleChildren = new ArrayList<>();
 
-                for (TimersTime tmp_child:
+                for (TimersTime tmp_child :
                         z.timersTimes) {
 //                        this.data.add(new  Item( CHILD, tmp_child.name));
-                    Tmp_add_inner_places.invisibleChildren.add(new Item( z.timersTimes.indexOf( tmp_child),indata.indexOf(z),CHILD, tmp_child.name, "",tmp_child.active,tmp_child.id,tmp_child.time,tmp_child.repeats,tmp_child.nextid,tmp_child.nextDo,tmp_child.maxrepeats ));
+                    Tmp_add_inner_places.invisibleChildren.add(new Item(z.timersTimes.indexOf(tmp_child), indata.indexOf(z), CHILD, tmp_child.name, "", tmp_child.active, tmp_child.id, tmp_child.time, tmp_child.repeats, tmp_child.nextid, tmp_child.nextDo, tmp_child.maxrepeats));
                 }
                 this.data.add(Tmp_add_inner_places);
 
@@ -119,7 +129,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int type) {
         View view = null;
         Context context = parent.getContext();
-        this.context=context;
+        this.context = context;
         //   mProvider = new DrawableProvider(context);
         iniDrwbBuild();
         float dp = context.getResources().getDisplayMetrics().density;
@@ -189,7 +199,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 itemController.header_title.setText(item.text);
                 TextDrawable drawable;
                 if (data.get(position).active) {
-                   // itemController.header_title.setBackgroundColor(Color.GREEN);
+                    // itemController.header_title.setBackgroundColor(Color.GREEN);
                     itemController.cv.setCardBackgroundColor(Color.parseColor(context.getString(R.color.greenprimary)));//Color.GREEN0x8BC34A"#8BC34A"
                     drawable = mDrawableBuilderHeaderActive.build(item.sTmrCategorySymbol, mColorGenerator.getColor(item.text));
                     itemController.imageView.setImageDrawable(drawable);
@@ -204,19 +214,19 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     itemController.menu.getMenu().clear();
                 }
 
-                MenuItem myActionItem=itemController.menu.getMenu().add(0, 0, 0, context.getString(R.string.menu_return) + item.text);
+                MenuItem myActionItem = itemController.menu.getMenu().add(0, 0, 0, context.getString(R.string.menu_return) + item.text);
                 myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
 
 
-                Bitmap BitmapOrg = Bitmap.createBitmap((int) (itemController.imageView.getLayoutParams().width*1.2),
-                        (int) (itemController.imageView.getLayoutParams().height*1.2), Bitmap.Config.RGB_565
-                        );
+                Bitmap BitmapOrg = Bitmap.createBitmap((int) (itemController.imageView.getLayoutParams().width * 1.2),
+                        (int) (itemController.imageView.getLayoutParams().height * 1.2), Bitmap.Config.RGB_565
+                );
                 Canvas canvas = new Canvas(BitmapOrg);
                 drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
                 drawable.draw(canvas);
 
-                myActionItem.setIcon(resizeImage(BitmapOrg, (int) (itemController.imageView.getLayoutParams().width*1.2),
-                        (int) (itemController.imageView.getLayoutParams().height*1.2)));
+                myActionItem.setIcon(resizeImage(BitmapOrg, (int) (itemController.imageView.getLayoutParams().width * 1.2),
+                        (int) (itemController.imageView.getLayoutParams().height * 1.2)));
 
 
                 itemController.pListHeaderPopupMenuFill();
@@ -256,24 +266,23 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     }
                 });
             }
-                break;
+            break;
             case CHILD:
                 final ListChildViewHolder itemChController = (ListChildViewHolder) holder;
                 // itemChController;
                 TextDrawable drawable;
-                itemChController.mCurrItem=item;
-                itemChController.mListPos=position;
+                itemChController.mCurrItem = item;
+                itemChController.mListPos = position;
                 itemChController.child_title.setText(data.get(position).text);
                 if (data.get(position).active) {
-                  //  itemChController.child_title.setBackgroundColor(Color.GREEN);
+                    //  itemChController.child_title.setBackgroundColor(Color.GREEN);
                     itemChController.cv.setCardBackgroundColor(Color.parseColor(context.getString(R.color.greenprimary_lvl)));//0x689F38
                     drawable = mDrawableBuilderChildActive.build(String.valueOf(item.text.charAt(0)), mColorGenerator.getRandomColor());
                     itemChController.imageView.setImageDrawable(drawable);
-                }
-                else {
+                } else {
                     itemChController.child_title.setBackgroundColor(Color.TRANSPARENT);
                     itemChController.cv.setCardBackgroundColor(Color.WHITE);//0x689F38
-                     drawable = mDrawableBuilderChildPassive.build(String.valueOf(item.text.charAt(0)),mColorGenerator.getColor(item.text));
+                    drawable = mDrawableBuilderChildPassive.build(String.valueOf(item.text.charAt(0)), mColorGenerator.getColor(item.text));
                     /// mDrawableBuilderChildActive
                     itemChController.imageView.setImageDrawable(drawable);
                 }
@@ -282,7 +291,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     itemChController.menu.getMenu().clear();
                 }
 
-                MenuItem myActionItem=itemChController.menu.getMenu().add(0, 0, 0, context.getString(R.string.menu_return) + item.text);
+                MenuItem myActionItem = itemChController.menu.getMenu().add(0, 0, 0, context.getString(R.string.menu_return) + item.text);
                 myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
 
 
@@ -293,8 +302,8 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
                 drawable.draw(canvas);
 
-                myActionItem.setIcon(resizeImage(BitmapOrg, (int) (itemChController.imageView.getLayoutParams().width*1.2),
-                        (int) (itemChController.imageView.getLayoutParams().height*1.2)));
+                myActionItem.setIcon(resizeImage(BitmapOrg, (int) (itemChController.imageView.getLayoutParams().width * 1.2),
+                        (int) (itemChController.imageView.getLayoutParams().height * 1.2)));
 
 
                 itemChController.pListChildPopupMenuFill();
@@ -311,19 +320,18 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
     private Drawable resizeImage(Bitmap BitmapOrg, int w, int h) {
 
 
-
-            int width = BitmapOrg.getWidth();
-            int height = BitmapOrg.getHeight();
-            int newWidth = w;
-            int newHeight = h;
-            // calculate the scale
-            float scaleWidth = ((float) newWidth) / width;
-            float scaleHeight = ((float) newHeight) / height;
-            // create a matrix for the manipulation
-            Matrix matrix = new Matrix();
-            matrix.postScale(scaleWidth, scaleHeight);
-            Bitmap resizedBitmap = Bitmap.createBitmap(BitmapOrg, 0, 0,width, height, matrix, true);
-            return new BitmapDrawable(resizedBitmap);
+        int width = BitmapOrg.getWidth();
+        int height = BitmapOrg.getHeight();
+        int newWidth = w;
+        int newHeight = h;
+        // calculate the scale
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+        // create a matrix for the manipulation
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap resizedBitmap = Bitmap.createBitmap(BitmapOrg, 0, 0, width, height, matrix, true);
+        return new BitmapDrawable(resizedBitmap);
 
 
     }
@@ -332,13 +340,14 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         long second = (time / 1000) % 60;
         long minute = (time / (1000 * 60)) % 60;
         long hour = (time / (1000 * 60 * 60)) % 24;
-        return  String.format("%02d:%02d:%02d", hour, minute, second);
+        return String.format("%02d:%02d:%02d", hour, minute, second);
     }
 
     public void animate(RecyclerView.ViewHolder viewHolder) {
         final Animation animAnticipateOvershoot = AnimationUtils.loadAnimation(context, R.anim.anticipate_overshoot_interpolator);
         viewHolder.itemView.setAnimation(animAnticipateOvershoot);
     }
+
     @Override
     public int getItemViewType(int position) {
         return data.get(position).type;
@@ -354,22 +363,105 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         return data.size();
     }
 
+    private boolean isCharGlyphAvailable(String ch, Paint paint) {
+        //  paint.measureText(sbp);
+//        Bitmap b = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ALPHA_8);
+//        Canvas c = new Canvas(b);
+//        c.drawText(text, 0, BITMAP_HEIGHT / 2, paint);
+
+
+// superior accuracy but recource hungry
+//        String missingCharacter = "\u0978"; // reserved code point (should not exist).
+//        byte[] b1 = getPixels(drawBitmap(ch));
+//        byte[] b2 = getPixels(drawBitmap(missingCharacter));
+//        return Arrays.equals(b1, b2);
+
+        Rect missingCharBounds = new Rect();
+        char missingCharacter = '\u2936';
+        paint.getTextBounds(String.valueOf(missingCharacter), 0, 1, missingCharBounds); // takes array as argument, but I need only one char.
+        Rect testCharsBounds = new Rect();
+        paint.getTextBounds(ch, 0, 1, testCharsBounds);
+        return !testCharsBounds.equals(missingCharBounds);
+
+//        return (paint.measureText(sbp)>0);
+    }
+
+    public static class Item {
+        public int type;
+        public String text; //name;
+        public List<Item> invisibleChildren;
+
+        public int id;
+        public int idx;
+        public int parent_idx;
+        public long time; //TimeUnit. ##### .toMillis(1)
+        public int repeats;
+        public int maxrepeats;
+        public int nextDo; //type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
+        public int nextid;
+
+        public String sTmrCategorySymbol; // Character.toString((char) 731); // Таймер помидоро
+        public boolean active;
+
+
+        public Item() {
+        }
+
+
+        public Item(int idx, int type, String text, String sTmrCategorySymbol, boolean active, int id) {
+            this.idx = idx;
+            this.type = type;
+            this.text = text;
+            this.sTmrCategorySymbol = sTmrCategorySymbol;
+            this.active = active;
+            this.id = id;
+        }
+
+        public Item(int idx, int parent_idx, int type, String text, String sTmrCategorySymbol, boolean active, int id, long time, int repeats, int nextid, int nextDo, int maxrepeats) {
+            this.idx = idx;
+            this.parent_idx = parent_idx;
+            this.type = type;
+            this.type = type;
+            this.text = text;
+            this.time = time;
+            this.sTmrCategorySymbol = sTmrCategorySymbol;
+            this.repeats = repeats;
+            this.nextid = nextid;
+            this.nextDo = nextDo;
+            this.maxrepeats = maxrepeats;
+            this.id = id;
+            this.active = active;
+        }
+    }
+//    private Bitmap drawBitmap(String text){
+//        Bitmap b = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ALPHA_8);
+//        Canvas c = new Canvas(b);
+//        c.drawText(text, 0, BITMAP_HEIGHT / 2, paint);
+//        return b;
+//    }
+//    private byte[] getPixels(Bitmap b) {
+//        ByteBuffer buffer = ByteBuffer.allocate(b.getByteCount());
+//        b.copyPixelsToBuffer(buffer);
+//        return buffer.array();
+//    }
+
     private class ListHeaderViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener, View.OnClickListener,
             MenuItem.OnMenuItemClickListener {
         private static final int CM_DELETE = 1;
         private static final int CM_EDIT = 2;
-        private static final int CM_SET_ACTIVE = 3 ;
-        private static final int CM_ADD = 4 ;
+        private static final int CM_SET_ACTIVE = 3;
+        private static final int CM_ADD = 4;
 
         public TextView header_title;
         public ImageView btn_expand_toggle;
         public Item refferalItem;
-       public CardView cv;
-       public TextView description;
-       public ImageView imageView;
+        public CardView cv;
+        public TextView description;
+        public ImageView imageView;
         public Item mCurrItem;
         public int mListPos;
-       public PopupMenu menu;
+        public PopupMenu menu;
+
         public ListHeaderViewHolder(View itemView) {
             super(itemView);
             header_title = (TextView) itemView.findViewById(R.id.header_title);
@@ -404,7 +496,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             menu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
-                    switch (item.getItemId())  {
+                    switch (item.getItemId()) {
                         case CM_DELETE: {
                             cm_DeleteItemInHeader();
                             break;
@@ -417,20 +509,20 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                             cm_SetActiveItemInHeader();
 
                         }
-                            break;
+                        break;
 
                         case CM_ADD: {
                             cm_AddCopyItemInHeader();
 
                         }
-                            break;
+                        break;
 
                     }
 
 
                     return false;
                 }
-            } );
+            });
 
             // Menu pMenu;
 
@@ -444,11 +536,11 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         }
 
         public void pListHeaderPopupMenuFill() {
-            menu.getMenu().add(0, CM_SET_ACTIVE, 0,R.string.menu_active)
+            menu.getMenu().add(0, CM_SET_ACTIVE, 0, R.string.menu_active)
                     .setIcon(android.R.drawable.btn_star_big_on)
                     .setOnMenuItemClickListener(this);
 
-            MenuItem myActionItem=menu.getMenu().add(0, CM_EDIT, 0, R.string.menu_edit);
+            MenuItem myActionItem = menu.getMenu().add(0, CM_EDIT, 0, R.string.menu_edit);
             myActionItem.setEnabled(true);
             myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
             myActionItem.setOnMenuItemClickListener(this);
@@ -468,14 +560,14 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         @Override
         public boolean onMenuItemClick(MenuItem item) {
 
-            switch (item.getItemId())  {
+            switch (item.getItemId()) {
                 case CM_DELETE: {
                     cm_DeleteItemInHeader();
 
                     break;
                 }
                 case CM_EDIT: {
-                   cm_EditItemInHeader();
+                    cm_EditItemInHeader();
                     break;
                 }
                 case CM_SET_ACTIVE: {
@@ -486,18 +578,14 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                     cm_AddCopyItemInHeader();
 
 
-
-
                     break;
                 }
             }
 
 
-
-
-
             return true;
         }
+
         private void cm_EditItemInHeader() {
 
 
@@ -533,27 +621,27 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             //set spinner adapter
 // // TODO: 03.12.2016 create dynamycally character map with all glyph
             //String[] mAllIcons = context.getResources().getStringArray(R.array.all_icons);
-            ArrayList<String> mAllIcons=new ArrayList();
-            Paint paint=new Paint();
+            ArrayList<String> mAllIcons = new ArrayList();
+            Paint paint = new Paint();
             paint.setTypeface(allData.Symbol_TYPEFACE);
             paint.setTextSize(24.0f);
 
-            for (int i = 0; i <2200; i++) {
-                boolean tbp=true;
-               String sbp= Character.toString((char) i);
+            for (int i = 0; i < 2200; i++) {
+                boolean tbp = true;
+                String sbp = Character.toString((char) i);
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
 
                     tbp = paint.hasGlyph(sbp);
 
                 } else {
 
-                  //  allData.Symbol_TYPEFACE.
-                    tbp =  isCharGlyphAvailable(sbp,paint);
+                    //  allData.Symbol_TYPEFACE.
+                    tbp = isCharGlyphAvailable(sbp, paint);
                 }
 
-                if (tbp){
-                   mAllIcons.add(sbp);
-               }
+                if (tbp) {
+                    mAllIcons.add(sbp);
+                }
 
 
             }
@@ -561,24 +649,22 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
             ArrayAdapter<String> spnAdapter;//gendersList
             spnAdapter = new ArrayAdapter<String>(context,
-                    R.layout.spec_spinner_item, (String[]) mAllIcons.toArray(new String[mAllIcons.size()] )) {
+                    R.layout.spec_spinner_item, (String[]) mAllIcons.toArray(new String[mAllIcons.size()])) {
                 @Override
-                public View  getDropDownView(int position, View convertView, ViewGroup parent)
-                {
+                public View getDropDownView(int position, View convertView, ViewGroup parent) {
                     View v = super.getDropDownView(position, convertView, parent);
                     ((TextView) v).setTypeface((allData.Symbol_TYPEFACE));//Typeface for dropdown view
                     // ((TextView) v).setBackgroundColor(Color.parseColor("#BBfef3da"));
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
                     return v;
                 }
 
                 @NonNull
                 @Override
-                public View getView(int position, View convertView, ViewGroup parent)
-                {
+                public View getView(int position, View convertView, ViewGroup parent) {
                     View v = super.getView(position, convertView, parent);
                     ((TextView) v).setTypeface(allData.Symbol_TYPEFACE);//Typeface for normal view
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
                     return v;
                 }
             };
@@ -591,11 +677,11 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             //set handling event for 2 buttons and spinner
             spnGender.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view,int position, long id) {
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                     sCategorySymbol.setText(mAllIcons.get(position));
 
                     TextDrawable drawable;
-                    if (indata.get(mCurrItem.idx).active){
+                    if (indata.get(mCurrItem.idx).active) {
                         drawable = mDrawableBuilderHeaderActive.build(mAllIcons.get(position), mColorGenerator.getColor(mCurrItem.text));
 
                     } else {
@@ -614,8 +700,8 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             });
             btnAdd.setOnClickListener(view -> {      //onConfirmListener(tmpItem, dialog)
                 indata.get(mCurrItem.idx).name = String.valueOf(name.getText());
-                indata.get(mCurrItem.idx).sTmrCategorySymbol= String.valueOf(sCategorySymbol.getText());
-               // indata.add( tmpItem);
+                indata.get(mCurrItem.idx).sTmrCategorySymbol = String.valueOf(sCategorySymbol.getText());
+                // indata.add( tmpItem);
                 refreshInternalData(indata);
                 dialog.dismiss();
 
@@ -629,20 +715,19 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         }
 
 
-
         private void cm_AddCopyItemInHeader() {
 // copy new item
             TimersCategoryInWorkspace tmpItem = new TimersCategoryInWorkspace();
-            tmpItem.name=indata.get(mCurrItem.idx).name;
-            tmpItem.id=indata.size();
-            while (!TimersServiceUtils.isValidId_alTimersCategoryInWorkspace(indata,tmpItem.id)){
+            tmpItem.name = indata.get(mCurrItem.idx).name;
+            tmpItem.id = indata.size();
+            while (!TimersServiceUtils.isValidId_alTimersCategoryInWorkspace(indata, tmpItem.id)) {
                 tmpItem.id++;
             }
-            tmpItem.sTmrCategorySymbol=indata.get(mCurrItem.idx).sTmrCategorySymbol;
-            tmpItem.timersTimes= new ArrayList<>();
+            tmpItem.sTmrCategorySymbol = indata.get(mCurrItem.idx).sTmrCategorySymbol;
+            tmpItem.timersTimes = new ArrayList<>();
             tmpItem.timersTimes.addAll(indata.get(mCurrItem.idx).timersTimes);
-            tmpItem.idDescription=indata.get(mCurrItem.idx).idDescription;
-            tmpItem.active=false;
+            tmpItem.idDescription = indata.get(mCurrItem.idx).idDescription;
+            tmpItem.active = false;
 // copy new item
             final Dialog dialog = new Dialog(context);
             dialog.setContentView(R.layout.time_header_dialog); //layout for dialog
@@ -662,11 +747,11 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             ImageView simageView = (ImageView) dialog.findViewById(R.id.imageView);
             TextDrawable drawable;
             if (indata.get(mCurrItem.idx).active) {
-                drawable = mDrawableBuilderHeaderActive.build( tmpItem.sTmrCategorySymbol, mColorGenerator.getColor( tmpItem.name));
+                drawable = mDrawableBuilderHeaderActive.build(tmpItem.sTmrCategorySymbol, mColorGenerator.getColor(tmpItem.name));
 
             } else {
 
-                drawable = mDrawableBuilderHeaderPassive.build( tmpItem.sTmrCategorySymbol, mColorGenerator.getColor( tmpItem.name));
+                drawable = mDrawableBuilderHeaderPassive.build(tmpItem.sTmrCategorySymbol, mColorGenerator.getColor(tmpItem.name));
                 // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
 
             }
@@ -676,14 +761,14 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             //set spinner adapter
 // // TODO: 03.12.2016 create dynamically character map with all glyph
             //String[] mAllIcons = context.getResources().getStringArray(R.array.all_icons);
-            ArrayList<String> mAllIcons=new ArrayList();
-            Paint paint=new Paint();
+            ArrayList<String> mAllIcons = new ArrayList();
+            Paint paint = new Paint();
             paint.setTypeface(allData.Symbol_TYPEFACE);
             paint.setTextSize(24.0f);
 
-            for (int i = 0; i <2200; i++) {
-                boolean tbp=true;
-                String sbp= Character.toString((char) i);
+            for (int i = 0; i < 2200; i++) {
+                boolean tbp = true;
+                String sbp = Character.toString((char) i);
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
 
                     tbp = paint.hasGlyph(sbp);
@@ -691,10 +776,10 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                 } else {
 
                     //  allData.Symbol_TYPEFACE.
-                    tbp =  isCharGlyphAvailable(sbp,paint);
+                    tbp = isCharGlyphAvailable(sbp, paint);
                 }
 
-                if (tbp){
+                if (tbp) {
                     mAllIcons.add(sbp);
                 }
 
@@ -704,24 +789,22 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
             ArrayAdapter<String> spnAdapter;//gendersList
             spnAdapter = new ArrayAdapter<String>(context,
-                    R.layout.spec_spinner_item, (String[]) mAllIcons.toArray(new String[mAllIcons.size()] )) {
+                    R.layout.spec_spinner_item, (String[]) mAllIcons.toArray(new String[mAllIcons.size()])) {
                 @Override
-                public View  getDropDownView(int position, View convertView, ViewGroup parent)
-                {
+                public View getDropDownView(int position, View convertView, ViewGroup parent) {
                     View v = super.getDropDownView(position, convertView, parent);
                     ((TextView) v).setTypeface((allData.Symbol_TYPEFACE));//Typeface for dropdown view
-                   // ((TextView) v).setBackgroundColor(Color.parseColor("#BBfef3da"));
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
+                    // ((TextView) v).setBackgroundColor(Color.parseColor("#BBfef3da"));
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
                     return v;
                 }
 
                 @NonNull
                 @Override
-                public View getView(int position, View convertView, ViewGroup parent)
-                {
+                public View getView(int position, View convertView, ViewGroup parent) {
                     View v = super.getView(position, convertView, parent);
                     ((TextView) v).setTypeface(allData.Symbol_TYPEFACE);//Typeface for normal view
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
                     return v;
                 }
             };
@@ -734,17 +817,17 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             //set handling event for 2 buttons and spinner
             spnSPCSymbol_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view,int position, long id) {
-                    tmpItem.sTmrCategorySymbol=mAllIcons.get(position);
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                    tmpItem.sTmrCategorySymbol = mAllIcons.get(position);
 
 
                     TextDrawable drawable;
-                    if (indata.get(mCurrItem.idx).active){
-                        drawable = mDrawableBuilderHeaderActive.build(mAllIcons.get(position), mColorGenerator.getColor( tmpItem.name));
+                    if (indata.get(mCurrItem.idx).active) {
+                        drawable = mDrawableBuilderHeaderActive.build(mAllIcons.get(position), mColorGenerator.getColor(tmpItem.name));
 
                     } else {
 
-                        drawable = mDrawableBuilderHeaderPassive.build(mAllIcons.get(position), mColorGenerator.getColor( tmpItem.name));
+                        drawable = mDrawableBuilderHeaderPassive.build(mAllIcons.get(position), mColorGenerator.getColor(tmpItem.name));
                         // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
 
                     }
@@ -758,14 +841,14 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             });
             btnAdd.setOnClickListener(view -> {      //onConfirmListener(tmpItem, dialog)
                 tmpItem.name = String.valueOf(name.getText());
-                tmpItem.sTmrCategorySymbol= String.valueOf(sCategorySymbol.getText());
-                indata.add( tmpItem);
+                tmpItem.sTmrCategorySymbol = String.valueOf(sCategorySymbol.getText());
+                indata.add(tmpItem);
                 refreshInternalData(indata);
                 dialog.dismiss();
 
             });
             btnCancel.setOnClickListener(view -> {
-               // do nothing
+                // do nothing
                 dialog.dismiss();
             });
             dialog.show();
@@ -780,42 +863,43 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
 
         private void cm_SetActiveItemInHeader() {
-            for (TimersCategoryInWorkspace tmp:
-                 indata) {
-                tmp.active=false;
+            for (TimersCategoryInWorkspace tmp :
+                    indata) {
+                tmp.active = false;
             }
-            indata.get(mCurrItem.idx).active=true;
+            indata.get(mCurrItem.idx).active = true;
             refreshInternalData(indata);
         }
+
         private void cm_DeleteItemInHeader() { //if not empty no del
-            if (indata.get(mCurrItem.idx).timersTimes.isEmpty() ) {
+            if (indata.get(mCurrItem.idx).timersTimes.isEmpty()) {
                 indata.remove(mCurrItem.idx);
                 refreshInternalData(indata);
-            } else
-                if (!indata.get(mCurrItem.idx).active ) {
+            } else if (!indata.get(mCurrItem.idx).active) {
 //                // TODO: 01.12.2016 dialog are your sure killing me softly
 //                final Dialog dialog = new Dialog(context);
 //
 //                dialog.show();
-                ArrayList<CharSequence> tmp = new ArrayList<>();
+                String tmp = "";
                 for (TimersTime z : indata.get(mCurrItem.idx).timersTimes) {
-                    tmp.add((CharSequence) z.name);
+                    tmp = tmp + z.name + "  \n";
                 }
-             //   String[] tmparr = new String[indata.get(mCurrItem.idx).timersTimes.size()+1];
+
 
                 new AlertDialog.Builder(context)
-                        .setTitle(context.getString(R.string.Delete_entry) + indata.get(mCurrItem.idx).name +"?")
-                        .setMessage(context.getString(R.string.Delete_entry_1) +
-                                context.getString(R.string.Delete_entry_2)
+                        .setTitle(context.getString(R.string.Delete_entry) + indata.get(mCurrItem.idx).name + "? \n")
+                        .setMessage(context.getString(R.string.Delete_entry_1)
+                                + context.getString(R.string.Delete_entry_2)
                                 + Integer.toString(indata.get(mCurrItem.idx).timersTimes.size())
-                                + context.getString(R.string.Delete_entry_3))
-                         .setItems((CharSequence[]) tmp.toArray(new CharSequence[tmp.size()]), ((DialogInterface.OnClickListener) (dialog, which) -> {
-                             // The 'which' argument contains the index position
-                             // of the selected item
-//                             CustomTypefaceSpan typefaceSpan = new CustomTypefaceSpan(allData.Symbol_TYPEFACE);
-                             //typefaceSpan.
-                             //Font helvetica=
-                         }))
+                                + context.getString(R.string.Delete_entry_3) + "? \n"
+                                + tmp)
+//                        .setItems((CharSequence[]) tmp.toArray(new CharSequence[tmp.size()]), ((DialogInterface.OnClickListener) (dialog, which) -> {
+//                            // The 'which' argument contains the index position
+//                            // of the selected item
+////                             CustomTypefaceSpan typefaceSpan = new CustomTypefaceSpan(allData.Symbol_TYPEFACE);
+//                            //typefaceSpan.
+//                            //Font helvetica=
+//                        }))
                         .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                             // continue with delete
                             indata.remove(mCurrItem.idx);
@@ -827,19 +911,17 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
             } else {
-                    new AlertDialog.Builder(context)
-                            .setTitle(context.getString(R.string.not_delete_Active_section) + indata.get(mCurrItem.idx).name)
-                            .setMessage(R.string.not_delete_Active_section_2)
+                new AlertDialog.Builder(context)
+                        .setTitle(context.getString(R.string.not_delete_Active_section) + indata.get(mCurrItem.idx).name)
+                        .setMessage(R.string.not_delete_Active_section_2)
 
 
-                            .setNeutralButton(android.R.string.cancel, (dialog, which) -> {
-                                // do nothing
-                            })
-                            .setIcon(android.R.drawable.ic_dialog_info)
-                            .show();
-                }
-
-
+                        .setNeutralButton(android.R.string.cancel, (dialog, which) -> {
+                            // do nothing
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_info)
+                        .show();
+            }
 
 
         }
@@ -850,8 +932,6 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         }
 
 
-
-
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
 
@@ -859,11 +939,11 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 //            // TODO: 15.11.2016 link header to headers name & add timspace name
             menu.setHeaderIcon(android.R.drawable.ic_menu_compass);
 
-            menu.add(0, CM_SET_ACTIVE, 0,R.string.menu_active)
+            menu.add(0, CM_SET_ACTIVE, 0, R.string.menu_active)
                     .setIcon(android.R.drawable.btn_star_big_on)
                     .setOnMenuItemClickListener(this);
 
-            MenuItem myActionItem=menu.add(0, CM_EDIT, 0, R.string.menu_edit);
+            MenuItem myActionItem = menu.add(0, CM_EDIT, 0, R.string.menu_edit);
             myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
             myActionItem.setOnMenuItemClickListener(this);
 
@@ -878,58 +958,23 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         }
     }
 
-    private boolean isCharGlyphAvailable(String ch, Paint paint) {
-        //  paint.measureText(sbp);
-//        Bitmap b = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ALPHA_8);
-//        Canvas c = new Canvas(b);
-//        c.drawText(text, 0, BITMAP_HEIGHT / 2, paint);
-
-
-// superior accuracy but recource hungry
-//        String missingCharacter = "\u0978"; // reserved code point (should not exist).
-//        byte[] b1 = getPixels(drawBitmap(ch));
-//        byte[] b2 = getPixels(drawBitmap(missingCharacter));
-//        return Arrays.equals(b1, b2);
-
-        Rect missingCharBounds = new Rect();
-        char missingCharacter = '\u2936';
-        paint.getTextBounds(String.valueOf(missingCharacter), 0, 1, missingCharBounds); // takes array as argument, but I need only one char.
-        Rect testCharsBounds = new Rect();
-        paint.getTextBounds(ch, 0, 1, testCharsBounds);
-        return !testCharsBounds.equals(missingCharBounds);
-
-//        return (paint.measureText(sbp)>0);
-    }
-//    private Bitmap drawBitmap(String text){
-//        Bitmap b = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ALPHA_8);
-//        Canvas c = new Canvas(b);
-//        c.drawText(text, 0, BITMAP_HEIGHT / 2, paint);
-//        return b;
-//    }
-//    private byte[] getPixels(Bitmap b) {
-//        ByteBuffer buffer = ByteBuffer.allocate(b.getByteCount());
-//        b.copyPixelsToBuffer(buffer);
-//        return buffer.array();
-//    }
-
-
-
     /**
      * ListChildViewHolder
      */
-    private class ListChildViewHolder extends RecyclerView.ViewHolder  implements View.OnCreateContextMenuListener, View.OnClickListener,
+    private class ListChildViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener, View.OnClickListener,
             MenuItem.OnMenuItemClickListener {
         private static final int CMC_DELETE = 1;
         private static final int CMC_EDIT = 2;
-        private static final int CMC_SET_ACTIVE = 3 ;
-        private static final int CMC_ADD = 4 ;
+        private static final int CMC_SET_ACTIVE = 3;
+        private static final int CMC_ADD = 4;
         public PopupMenu menu;
         public TextView child_title;
+        public Item mCurrItem;
+        public int mListPos;
         CardView cv;
         TextView timedescription;
         ImageView imageView;
-        public Item mCurrItem;
-        public int mListPos;
+
         public ListChildViewHolder(View itemView) {
             super(itemView);
             child_title = (TextView) itemView.findViewById(R.id.child_title);
@@ -962,7 +1007,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             menu.setOnMenuItemClickListener(new OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
-                    switch (item.getItemId())  {
+                    switch (item.getItemId()) {
                         case CMC_DELETE: {
                             cmc_DeleteItemInChild();
                             break;
@@ -988,7 +1033,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
                     return false;
                 }
-            } );
+            });
 
             // Menu pMenu;
 
@@ -1008,12 +1053,12 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
         }
 
         public void pListChildPopupMenuFill() {
-            menu.getMenu().add(0, CMC_SET_ACTIVE, 0,R.string.menu_active)
+            menu.getMenu().add(0, CMC_SET_ACTIVE, 0, R.string.menu_active)
                     .setIcon(android.R.drawable.btn_star_big_on)
                     .setEnabled(true)
                     .setOnMenuItemClickListener(this);
 
-            MenuItem myActionItem=menu.getMenu().add(0, CMC_EDIT, 0, R.string.menu_edit);
+            MenuItem myActionItem = menu.getMenu().add(0, CMC_EDIT, 0, R.string.menu_edit);
             myActionItem.setEnabled(false);//true
             myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
             myActionItem.setOnMenuItemClickListener(this);
@@ -1021,15 +1066,16 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             menu.getMenu().add(0, CMC_DELETE, 0, R.string.menu_Delete)
                     .setIcon(R.drawable.ic_andr_cross)
                     .setEnabled(true)
-                   // .setOnMenuItemClickListener(this)
+                    // .setOnMenuItemClickListener(this)
                     .setEnabled(!indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).active);
 //                    .setEnabled(false);
 
             menu.getMenu().add(0, CMC_ADD, 0, R.string.menu_add)
                     .setIcon(android.R.drawable.sym_contact_card)
-                    .setEnabled(false)//true
+                    .setEnabled(true)//true
                     .setOnMenuItemClickListener(this);
         }
+
         @Override
         public void onClick(View v) {
 //            if (SHOW_DEBUG)   Toast.makeText( v.getContext(), "Click in POI pos>"+Integer.toString(mPOIpos), Toast.LENGTH_SHORT).show();
@@ -1039,259 +1085,221 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 //               // poiDetailActivity.fabMain.startAnimation(poiDetailActivity.rotate_forwardD);
 //            }
         }
+
         private void cmc_EditItemInChild() {
 
-
-            final Dialog dialog = new Dialog(context);
-            dialog.setContentView(R.layout.time_header_dialog); //layout for dialog
-            dialog.setTitle("Edit TimersCategory");
-            dialog.setCancelable(false); //none-dismiss when touching outside Dialog
-            // set the custom dialog components - texts and image
-            EditText name = (EditText) dialog.findViewById(R.id.name);
-            name.setText(indata.get(mCurrItem.idx).name);
-            EditText sCategorySymbol = (EditText) dialog.findViewById(R.id.CategorySymbol);
-            sCategorySymbol.setTypeface(allData.Symbol_TYPEFACE);
-            sCategorySymbol.setText(indata.get(mCurrItem.idx).sTmrCategorySymbol);
-
-            Spinner spnGender = (Spinner) dialog.findViewById(R.id.symbol_spinner);
-
-            View btnAdd = dialog.findViewById(R.id.btn_ok);
-            View btnCancel = dialog.findViewById(R.id.btn_cancel);
+            TimersTime tmpItem = new TimersTime();
+            tmpItem = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx);
+            int tmpid;
+            tmpid = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).id;
 
 
-            ImageView simageView = (ImageView) dialog.findViewById(R.id.imageView);
-            TextDrawable drawable;
-            if (indata.get(mCurrItem.idx).active) {
-                drawable = mDrawableBuilderHeaderActive.build(indata.get(mCurrItem.idx).sTmrCategorySymbol, mColorGenerator.getColor(mCurrItem.text));
-
-            } else {
-
-                drawable = mDrawableBuilderHeaderPassive.build(indata.get(mCurrItem.idx).sTmrCategorySymbol, mColorGenerator.getColor(mCurrItem.text));
-                // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
-
-            }
-            simageView.setImageDrawable(drawable);
-            //set spinner adapter
-// // TODO: 03.12.2016 create dynamycally character map with all glyph
-            //String[] mAllIcons = context.getResources().getStringArray(R.array.all_icons);
-            ArrayList<String> mAllIcons=new ArrayList();
-            Paint paint=new Paint();
-            paint.setTypeface(allData.Symbol_TYPEFACE);
-            paint.setTextSize(24.0f);
-
-            for (int i = 0; i <2200; i++) {
-                boolean tbp=true;
-                String sbp= Character.toString((char) i);
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-
-                    tbp = paint.hasGlyph(sbp);
-
-                } else {
-
-                    //  allData.Symbol_TYPEFACE.
-                    tbp =  isCharGlyphAvailable(sbp,paint);
-                }
-
-                if (tbp){
-                    mAllIcons.add(sbp);
-                }
-
-
-            }
-//        end     create dynamycally character map with all glyph in mAllIcons
-
-            ArrayAdapter<String> spnAdapter;//gendersList
-            spnAdapter = new ArrayAdapter<String>(context,
-                    R.layout.spec_spinner_item, (String[]) mAllIcons.toArray(new String[mAllIcons.size()] )) {
-                @Override
-                public View  getDropDownView(int position, View convertView, ViewGroup parent)
-                {
-                    View v = super.getDropDownView(position, convertView, parent);
-                    ((TextView) v).setTypeface((allData.Symbol_TYPEFACE));//Typeface for dropdown view
-                    // ((TextView) v).setBackgroundColor(Color.parseColor("#BBfef3da"));
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
-                    return v;
-                }
-
-                @NonNull
-                @Override
-                public View getView(int position, View convertView, ViewGroup parent)
-                {
-                    View v = super.getView(position, convertView, parent);
-                    ((TextView) v).setTypeface(allData.Symbol_TYPEFACE);//Typeface for normal view
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
-                    return v;
-                }
-            };
-            //spnAdapter.
-
-
-            spnGender.setAdapter(spnAdapter);
-//            TextView spcname = (TextView) spnGender.findViewById(R.id.text1);
-//            spcname.setTypeface(allData.Symbol_TYPEFACE);
-            //set handling event for 2 buttons and spinner
-            spnGender.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view,int position, long id) {
-                    sCategorySymbol.setText(mAllIcons.get(position));
-
-                    TextDrawable drawable;
-                    if (indata.get(mCurrItem.idx).active){
-                        drawable = mDrawableBuilderHeaderActive.build(mAllIcons.get(position), mColorGenerator.getColor(mCurrItem.text));
-
-                    } else {
-
-                        drawable = mDrawableBuilderHeaderPassive.build(mAllIcons.get(position), mColorGenerator.getColor(mCurrItem.text));
-                        // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
-
-                    }
-                    simageView.setImageDrawable(drawable);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
-
-                }
-            });
-            btnAdd.setOnClickListener(view -> {      //onConfirmListener(tmpItem, dialog)
-//                indata.get(mCurrItem.idx).name = String.valueOf(name.getText());
-//                indata.get(mCurrItem.idx).sTmrCategorySymbol= String.valueOf(sCategorySymbol.getText());
-                // indata.add( tmpItem);
-                indata.get(mCurrItem.parent_idx).timersTimes.get( mCurrItem.idx).name = String.valueOf(name.getText());;
-                refreshInternalData(indata);
-                dialog.dismiss();
-
-            });
-            btnCancel.setOnClickListener(view -> {
-                // do nothing
-                dialog.dismiss();
-            });
-            dialog.show();
+            copyEditItemInChild(tmpItem, tmpid);
 
         }
-
 
 
         private void cmc_AddCopyItemInChild() {
 // copy new item
+            TimersTime tmpItem = new TimersTime();
+            tmpItem = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx);
+            int tmpid;
+            tmpid = indata.get(mCurrItem.parent_idx).timersTimes.size();
 
-           TimersTime tmpItem = new TimersTime();
-            tmpItem.name=indata.get(mCurrItem.idx).name;
-            tmpItem.id=indata.size();
-            while (!TimersServiceUtils.isValidId_alTimersCategoryInWorkspace(indata,tmpItem.id)){
-                tmpItem.id++;
+            while (!TimersServiceUtils.isValidId_timersTimes(indata.get(mCurrItem.parent_idx).timersTimes, tmpid)) {
+                tmpid++;
             }
-//            tmpItem.sTmrCategorySymbol=indata.get(mCurrItem.idx).sTmrCategorySymbol;
-//            tmpItem.timersTimes= new ArrayList<>();
-//            tmpItem.timersTimes.addAll(indata.get(mCurrItem.idx).timersTimes);
-            tmpItem.idDescription=indata.get(mCurrItem.idx).idDescription;
-            tmpItem.active=false;
+//            tmpItem.id = indata.get(mCurrItem.parent_idx).timersTimes.size();
+//
+//            while (!TimersServiceUtils.isValidId_timersTimes(indata.get(mCurrItem.parent_idx).timersTimes, tmpItem.id)) {
+//                tmpItem.id++;
+//            }
+            copyEditItemInChild(tmpItem, tmpid);
+
+        }
+
+        private void copyEditItemInChild(TimersTime tmpItem, int inid) {
+
+            boolean btypeEditNewSelector = (tmpItem.id == inid);
+
+            if (btypeEditNewSelector) {
+                //edit this
+            } else {
+
+
+//         *   public String name;
+//          *  public int id;
+//          *  public long time; //TimeUnit. ##### .toMillis(1)
+//            public int repeats;
+//          *  public int maxrepeats;
+//        *    public int nextDo; //type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
+//            // String nextname;
+//        *    public int nextid;
+//         *   public boolean active;
+//            public int typeTimerBehavior=0; // 0-normal 1 vibrate every second 2silent)
+//          *  public int idDescription=0; //
+
+//            tmp.id = id; //0
+//            tmp.name = name;//_context.getString(R.string.timers0categoryinworkspace1);
+//            tmp.maxrepeats = maxrepeats;//1;
+//            tmp.nextDo = nextDo;//0type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
+//            tmp.nextid = nextid;//1;
+//            tmp.repeats = repeats;//0;
+//            tmp.time = time; //TimeUnit.SECONDS.toMillis(20) + TimeUnit.MINUTES.toMillis(30);
+//            tmp.active = active;
+
+                tmpItem.name = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).name;
+
+                tmpItem.id = inid;
+                tmpItem.time = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).time;
+                tmpItem.nextid = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).nextid;
+                tmpItem.nextDo = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).nextDo;
+                tmpItem.maxrepeats = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).maxrepeats;
+                tmpItem.repeats = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).repeats;
+                tmpItem.idDescription = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).idDescription;
+                tmpItem.typeTimerBehavior = indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).typeTimerBehavior;
+                tmpItem.active = false;
 // copy new item
+            }
+
             final Dialog dialog = new Dialog(context);
-            dialog.setContentView(R.layout.time_header_dialog); //layout for dialog
-            dialog.setTitle("Add a new TimersCategory");
+            dialog.setContentView(R.layout.time_child_dialog); //layout for dialog
+            dialog.setTitle("Add a new Timer");
             dialog.setCancelable(false); //none-dismiss when touching outside Dialog
-            // set the custom dialog components - texts and image
-            EditText name = (EditText) dialog.findViewById(R.id.name);
-            name.setText(tmpItem.name);
-            EditText sCategorySymbol = (EditText) dialog.findViewById(R.id.CategorySymbol);
-            sCategorySymbol.setTypeface(allData.Symbol_TYPEFACE);
-            sCategorySymbol.setText(indata.get(mCurrItem.idx).sTmrCategorySymbol);
-            Spinner spnSPCSymbol_spinner = (Spinner) dialog.findViewById(R.id.symbol_spinner);
-            View btnAdd = dialog.findViewById(R.id.btn_ok);
-            View btnCancel = dialog.findViewById(R.id.btn_cancel);
 
 
             ImageView simageView = (ImageView) dialog.findViewById(R.id.imageView);
+
             TextDrawable drawable;
-            if (indata.get(mCurrItem.idx).active) {
-                drawable = mDrawableBuilderChildActive.build( indata.get(mCurrItem.idx).sTmrCategorySymbol, mColorGenerator.getColor( tmpItem.name));
+
+            if (tmpItem.active) {
+                drawable = mDrawableBuilderChildActive.build(String.valueOf(tmpItem.name.charAt(0)), mColorGenerator.getColor(tmpItem.name));
 
             } else {
 
-                drawable = mDrawableBuilderChildPassive.build( indata.get(mCurrItem.idx).sTmrCategorySymbol, mColorGenerator.getColor( tmpItem.name));
+                drawable = mDrawableBuilderChildPassive.build(String.valueOf(tmpItem.name.charAt(0)), mColorGenerator.getColor(tmpItem.name));
                 // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
 
             }
 
             simageView.setImageDrawable(drawable);
 
-            //set spinner adapter
-// // TODO: 03.12.2016 create dynamically character map with all glyph
-            //String[] mAllIcons = context.getResources().getStringArray(R.array.all_icons);
-            ArrayList<String> mAllIcons=new ArrayList();
-            Paint paint=new Paint();
-            paint.setTypeface(allData.Symbol_TYPEFACE);
-            paint.setTextSize(24.0f);
-
-            for (int i = 0; i <2200; i++) {
-                boolean tbp=true;
-                String sbp= Character.toString((char) i);
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-
-                    tbp = paint.hasGlyph(sbp);
-
-                } else {
-
-                    //  allData.Symbol_TYPEFACE.
-                    tbp =  isCharGlyphAvailable(sbp,paint);
-                }
-
-                if (tbp){
-                    mAllIcons.add(sbp);
-                }
-
-
-            }
-//        end     create dynamically character map with all glyph in mAllIcons
-
-            ArrayAdapter<String> spnAdapter;//gendersList
-            spnAdapter = new ArrayAdapter<String>(context,
-                    R.layout.spec_spinner_item, (String[]) mAllIcons.toArray(new String[mAllIcons.size()] )) {
+            EditText name = (EditText) dialog.findViewById(R.id.name);
+            name.setText(tmpItem.name);
+            name.addTextChangedListener(new TextWatcher() {
                 @Override
-                public View  getDropDownView(int position, View convertView, ViewGroup parent)
-                {
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    TextDrawable drawable;
+                    tmpItem.name = editable.toString();
+                    if (tmpItem.active) {
+
+                        drawable = mDrawableBuilderChildActive.build(String.valueOf(tmpItem.name.charAt(0)), mColorGenerator.getColor(tmpItem.name));
+
+                    } else {
+
+                        drawable = mDrawableBuilderChildPassive.build(String.valueOf(tmpItem.name.charAt(0)), mColorGenerator.getColor(tmpItem.name));
+                        // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
+
+                    }
+
+                    simageView.setImageDrawable(drawable);
+
+
+                }
+            });
+            TextView sTimersTime = (TextView) dialog.findViewById(R.id.TimersTime);
+            sTimersTime.setText(TimeInMilisToStr(tmpItem.time));
+
+            Button btSetTimerTimeButton = (Button) dialog.findViewById(R.id.SetTimerTimeButton);
+
+            btSetTimerTimeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TimePickerDialog.OnTimeSetListener callback = new TimePickerDialog.OnTimeSetListener() {
+                        @Override
+                        public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
+                            tmpItem.time = TimeUnit.SECONDS.toMillis(second) + TimeUnit.MINUTES.toMillis(minute) + TimeUnit.HOURS.toMillis(hourOfDay);
+
+                            sTimersTime.setText(TimeInMilisToStr(tmpItem.time));
+                        }
+                    };
+//Get FragmentManager
+                    FragmentManager fragmentManager = ((Activity) context).getFragmentManager();
+                    TimePickerDialog tpd = TimePickerDialog.newInstance(
+                            callback,
+                            (int) (tmpItem.time / (1000 * 60 * 60)) % 24, //hour
+                            (int) (tmpItem.time / (1000 * 60)) % 60, //MINUTE
+                            (int) (tmpItem.time / 1000) % 60,//second
+                            true //is24HourMode
+                    );
+                    tpd.vibrate(false);
+                    tpd.enableSeconds(true);
+                    tpd.enableMinutes(true);
+                    tpd.setTitle(tmpItem.name);
+//                if (limitTimes.isChecked()) {
+//                    tpd.setTimeInterval(2, 5, 10);
+//                }
+                    tpd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            Log.d("TimePicker", "Dialog was cancelled");
+                        }
+                    });
+                    tpd.show(fragmentManager, "Timepickerdialog");//context, "Timepickerdialog"
+                }
+            });
+
+
+            Spinner spnNextid_spinner = (Spinner) dialog.findViewById(R.id.nextid_spinner);
+            //set spinner adapter
+            ArrayList<String> tmp = new ArrayList<>();
+            for (TimersTime z : indata.get(mCurrItem.parent_idx).timersTimes) {
+                tmp.add(z.name);
+            }
+
+            ArrayAdapter<String> spnAdapter;//TimersList
+            spnAdapter = new ArrayAdapter<String>(context,
+                    R.layout.spec_spinner_item, (String[]) tmp.toArray(new String[tmp.size()])) {
+                @Override
+                public View getDropDownView(int position, View convertView, ViewGroup parent) {
                     View v = super.getDropDownView(position, convertView, parent);
-                    ((TextView) v).setTypeface((allData.Symbol_TYPEFACE));//Typeface for dropdown view
+                    //  ((TextView) v).setTypeface((allData.Symbol_TYPEFACE));//Typeface for dropdown view
                     // ((TextView) v).setBackgroundColor(Color.parseColor("#BBfef3da"));
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
                     return v;
                 }
 
                 @NonNull
                 @Override
-                public View getView(int position, View convertView, ViewGroup parent)
-                {
+                public View getView(int position, View convertView, ViewGroup parent) {
                     View v = super.getView(position, convertView, parent);
-                    ((TextView) v).setTypeface(allData.Symbol_TYPEFACE);//Typeface for normal view
-                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
+                    // ((TextView) v).setTypeface(allData.Symbol_TYPEFACE);//Typeface for normal view
+                    ((TextView) v).setTextSize(TypedValue.COMPLEX_UNIT_DIP, 30);
                     return v;
                 }
             };
             //spnAdapter.
 
 
-            spnSPCSymbol_spinner.setAdapter(spnAdapter);
-//            TextView spcname = (TextView) spnSPCSymbol_spinner.findViewById(R.id.text1);
-//            spcname.setTypeface(allData.Symbol_TYPEFACE);
+            spnNextid_spinner.setAdapter(spnAdapter);
+            spnNextid_spinner.setSelection(TimersServiceUtils.getIdXbyId_timersTimes(indata.get(mCurrItem.parent_idx).timersTimes, tmpItem.nextid));
             //set handling event for 2 buttons and spinner
-            spnSPCSymbol_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            spnNextid_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view,int position, long id) {
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
 //                    tmpItem.sTmrCategorySymbol=mAllIcons.get(position);
+                    tmpItem.nextid = indata.get(mCurrItem.parent_idx).timersTimes.get(position).id;
 
-
-                    TextDrawable drawable;
-                    if (indata.get(mCurrItem.idx).active){
-                        drawable = mDrawableBuilderHeaderActive.build(mAllIcons.get(position), mColorGenerator.getColor( tmpItem.name));
-
-                    } else {
-
-                        drawable = mDrawableBuilderHeaderPassive.build(mAllIcons.get(position), mColorGenerator.getColor( tmpItem.name));
-                        // mDrawableBuilderHeaderPassive  mDrawableBuilderHeaderActive
-
-                    }
-                    simageView.setImageDrawable(drawable);
                 }
 
                 @Override
@@ -1299,32 +1307,138 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
                 }
             });
-            btnAdd.setOnClickListener(view -> {      //onConfirmListener(tmpItem, dialog)
+
+            //etrepeats
+
+            EditText etrepeats = (EditText) dialog.findViewById(R.id.etrepeats);
+            etrepeats.setText(Integer.toString(tmpItem.repeats));
+
+            NumberPicker numberPicker_etrepeats = (NumberPicker) dialog.findViewById(R.id.numberPicker_etrepeats);
+            numberPicker_etrepeats.setMaxValue(999);
+            numberPicker_etrepeats.setMinValue(0);
+            numberPicker_etrepeats.setValue(tmpItem.repeats);
+
+            EditText etmaxrepeats = (EditText) dialog.findViewById(R.id.etmaxrepeats);
+            etmaxrepeats.setText(Integer.toString(tmpItem.maxrepeats));
+
+
+            Spinner nextDo_spinner = (Spinner) dialog.findViewById(R.id.nextDo_spinner);
+            //type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
+            String[] nextDo_data = {" no repeats", " repeats to maxrepeats & go next", "repeats  & never go next"};
+            ArrayAdapter<String> nextDo_adapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, nextDo_data);
+            nextDo_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            nextDo_spinner.setAdapter(nextDo_adapter);
+            // заголовок
+            nextDo_spinner.setPrompt("nextDo");
+            // выделяем элемент
+            nextDo_spinner.setSelection(tmpItem.nextDo);
+            // устанавливаем обработчик нажатия
+            nextDo_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                    tmpItem.nextDo=position;
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+            Spinner typeTimerBehavior_spinner = (Spinner) dialog.findViewById(R.id.typeTimerBehavior_spinner);
+            // 0-normal 1 vibrate every second 2silent)
+            String[] typeTimerBehavior_data = {" normal vibrate", " vibrate every second", "silent"};
+            ArrayAdapter<String> typeTimerBehavior_adapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, typeTimerBehavior_data);
+            typeTimerBehavior_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            typeTimerBehavior_spinner.setAdapter(typeTimerBehavior_adapter);
+            // заголовок
+            typeTimerBehavior_spinner.setPrompt("typeTimerBehavior");
+            // выделяем элемент
+            typeTimerBehavior_spinner.setSelection(tmpItem.typeTimerBehavior);
+            // устанавливаем обработчик нажатия
+            typeTimerBehavior_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                    tmpItem.typeTimerBehavior=position;
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
+            Spinner idDescription_spinner = (Spinner) dialog.findViewById(R.id.idDescription_spinner);
+            // 0-normal 1 vibrate every second 2silent)
+            String[] idDescription_data = {" normal vibrate", " vibrate every second", "silent"};
+            ArrayAdapter<String> idDescription_adapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, idDescription_data);
+            idDescription_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            idDescription_spinner.setAdapter(idDescription_adapter);
+            // заголовок
+            idDescription_spinner.setPrompt(" idDescription ");
+            // выделяем элемент
+            idDescription_spinner.setSelection(tmpItem.idDescription);
+            // устанавливаем обработчик нажатия
+            idDescription_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                    tmpItem.idDescription=position;
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
+
+            //Buttons
+            View btnAdd = dialog.findViewById(R.id.btn_ok);
+            View btnCancel = dialog.findViewById(R.id.btn_cancel);
+
+
+            btnAdd.setOnClickListener(view ->
+            {      //onConfirmListener
                 tmpItem.name = String.valueOf(name.getText());
-//                tmpItem.sTmrCategorySymbol= String.valueOf(sCategorySymbol.getText());
-                indata.get(mCurrItem.parent_idx).timersTimes.add( tmpItem);
+                tmpItem.repeats = numberPicker_etrepeats.getValue();
+                //     tmpItem.repeats = Integer.getInteger(String.valueOf(etrepeats.getText()));
+                tmpItem.maxrepeats = Integer.parseInt(String.valueOf(etmaxrepeats.getText()));
+
+
+                //                tmpItem.sTmrCategorySymbol= String.valueOf(sCategorySymbol.getText());
+
+                if (btypeEditNewSelector) {
+                    //edit this
+                    indata.get(mCurrItem.parent_idx).timersTimes.set(mCurrItem.idx, tmpItem);
+                } else {
+
+                    indata.get(mCurrItem.parent_idx).timersTimes.add(tmpItem);
+                }
                 refreshInternalData(indata);
                 dialog.dismiss();
 
             });
-            btnCancel.setOnClickListener(view -> {
+            btnCancel.setOnClickListener(view -> { //onCancelListener
                 // do nothing
                 dialog.dismiss();
             });
             dialog.show();
-
         }
+
         private void cmc_SetActiveItemInChild() {
-            for (TimersTime tmp:
+            for (TimersTime tmp :
                     indata.get(mCurrItem.parent_idx).timersTimes) {
-                tmp.active=false;
+                tmp.active = false;
             }
-            indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).active=true;
+            indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).active = true;
             refreshInternalData(indata);
         }
+
         private void cmc_DeleteItemInChild() { //if not empty no del
 
-            if (!indata.get(mCurrItem.parent_idx).timersTimes.get( mCurrItem.idx).active ) {
+            if (!indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).active) {
 //                // TODO: 01.12.2016 dialog are your sure killing me softly
 //                final Dialog dialog = new Dialog(context);
 //
@@ -1337,7 +1451,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
 
                 new AlertDialog.Builder(context)
 
-                        .setTitle(context.getString(R.string.Delete_entry) + indata.get(mCurrItem.parent_idx).timersTimes.get( mCurrItem.idx).name +"?")
+                        .setTitle(context.getString(R.string.Delete_entry) + indata.get(mCurrItem.parent_idx).timersTimes.get(mCurrItem.idx).name + "?")
                         .setMessage(context.getString(R.string.Delete_entry_1)
 //                                context.getString(R.string.Delete_entry_2)
 //                                + Integer.toString(indata.get(mCurrItem.idx).timersTimes.size())+
@@ -1352,7 +1466,7 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
                         }))*/
                         .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                             // continue with delete
-                            indata.get(mCurrItem.parent_idx).timersTimes.remove( mCurrItem.idx);
+                            indata.get(mCurrItem.parent_idx).timersTimes.remove(mCurrItem.idx);
                             refreshInternalData(indata);
                         })
                         .setNegativeButton(android.R.string.no, (dialog, which) -> {
@@ -1374,62 +1488,12 @@ public class Tmr2lvlExpandableListAdapter extends RecyclerView.Adapter<RecyclerV
             }
 
 
-
-
         }
 
 
         @Override
         public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
 
-        }
-    }
-    public static class Item {
-        public int type;
-        public String text; //name;
-        public List<Item> invisibleChildren;
-
-        public int id;
-        public int idx;
-        public int parent_idx;
-        public long time; //TimeUnit. ##### .toMillis(1)
-        public int repeats;
-        public int maxrepeats;
-        public int nextDo; //type 0 no repeats if rep>= maxrepeats & go next numb ** 1 go to next id / name
-        public int nextid;
-
-        public String sTmrCategorySymbol; // Character.toString((char) 731); // Таймер помидоро
-        public boolean active;
-
-
-
-        public Item() {
-        }
-
-
-        public Item(int idx,int type, String text, String sTmrCategorySymbol, boolean active, int id) {
-            this.idx = idx;
-            this.type = type;
-            this.text = text;
-            this.sTmrCategorySymbol = sTmrCategorySymbol;
-            this.active = active;
-            this.id = id;
-        }
-
-        public Item(int idx,int parent_idx, int type, String text, String sTmrCategorySymbol, boolean active,  int id, long time,  int repeats, int nextid, int nextDo, int maxrepeats ) {
-            this.idx = idx;
-            this.parent_idx=parent_idx;
-            this.type = type;
-            this.type = type;
-            this.text = text;
-            this.time = time;
-            this.sTmrCategorySymbol = sTmrCategorySymbol;
-            this.repeats = repeats;
-            this.nextid = nextid;
-            this.nextDo = nextDo;
-            this.maxrepeats = maxrepeats;
-            this.id = id;
-            this.active = active;
         }
     }
 }

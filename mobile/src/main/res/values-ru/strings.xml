@@ -40,9 +40,9 @@
     <string name="add_timerworkspace_button">...</string>
     <string name="menu_return">"Вернутся к "</string>
     <string name="Delete_entry">"Удалить запись "</string>
-    <string name="Delete_entry_1">Вы уверены, что желаете это удалить?</string>
-    <string name="Delete_entry_2">В этом разделе есть</string>
-    <string name="Delete_entry_3">" таймери"</string>
+    <string name="Delete_entry_1">\" Вы уверены, что желаете это удалить? \"</string>
+    <string name="Delete_entry_2">\" В этом разделе есть \"</string>
+    <string name="Delete_entry_3">\" таймер/а\"</string>
     <string name="not_delete_Active_section">Невозможно удалить активный раздел</string>
     <string name="not_delete_Active_section_2">Установите другой раздел активным и тогда получится</string>
 </resources>

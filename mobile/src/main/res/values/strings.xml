@@ -57,7 +57,7 @@
     <string name="not_delete_Active_section_2">Set another section active and do that</string>
     <string name="Delete_entry">"Delete entry "</string>
     <string name="Delete_entry_1">"Are you sure to delete this section? \n "</string>
-    <string name="Delete_entry_2">"In this section there is a "</string>
+    <string name="Delete_entry_2">\" In this section there is a \"</string>
     <string name="Delete_entry_3">" timers"</string>
 
 
