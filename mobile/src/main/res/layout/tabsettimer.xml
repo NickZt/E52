@@ -18,7 +18,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/setAlTimersCategoriesButton"
-             />
+            android:layout_toStartOf="@+id/AddTimerWorkSpspButton"
+            android:elevation="5dp" />
 
         <Button
             android:id="@+id/AddTimerWorkSpspButton"
@@ -38,6 +39,15 @@
             android:layout_toStartOf="@+id/AddTimerWorkSpspButton"
 
             />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@android:drawable/ic_menu_save"
+            android:layout_above="@+id/AddTimerWorkSpspButton"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/SaveLoadTimerWorkSpspButton"
+            android:layout_toEndOf="@+id/setAlTimersCategoriesButton" />
     </RelativeLayout>
 
 

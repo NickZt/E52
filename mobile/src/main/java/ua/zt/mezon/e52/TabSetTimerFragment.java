@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +30,10 @@ import java.util.ArrayList;
 import rx.Observable;
 import rx.subscriptions.CompositeSubscription;
 import ua.zt.mezon.e52.misc.TimerWorkspace;
+import ua.zt.mezon.e52.misc.TimersServiceUtils;
 import ua.zt.mezon.e52.timerspslay.Tmr2lvlExpandableListAdapter;
+
+import static ua.zt.mezon.e52.timerspslay.Tmr2lvlExpandableListAdapter.indata;
 
 /**
  * Created by MezM on 03.11.2016.
@@ -37,49 +41,46 @@ import ua.zt.mezon.e52.timerspslay.Tmr2lvlExpandableListAdapter;
 
 public class TabSetTimerFragment extends Fragment implements TimePickerDialog.OnTimeSetListener {
 
+    public static final String TYPE = "TYPE";
     private static final boolean SHOW_DEBUG = true;
-    private ArrayList<TimerWorkspace> alTimersCategories = new ArrayList<>();
-    private int iActiveWorkSpaceindex;
+    public RxWear rxWear;
     //TimePickerDialog  mTimerPickerDialog;
     Button btAddTimerWorkSpspButton;
     Button btSetAlTimersCategoriesButton;
+    ImageButton btSaveLoadTimerWorkSpspButton;
+    private ArrayList<TimerWorkspace> alTimersCategories = new ArrayList<>();
+    private int iActiveWorkSpaceindex;
     private AllData allData = AllData.getInstance();
-
     private TextView timeTextView;
     private Spinner tmrworkspspinner;
-    public static final String TYPE = "TYPE";
-//    private TmrDataSource mDataSource;
-    private RecyclerView recyclerview;;
+    ;
+    //    private TmrDataSource mDataSource;
+    private RecyclerView recyclerview;
     private Tmr2lvlExpandableListAdapter timerdataset;
-
     private CompositeSubscription subscription = new CompositeSubscription();
-    private Observable<Boolean> validator;
+    private Observable<Boolean> validator;//DIRECTORY_PICTURES
 
-
-
-    public RxWear rxWear;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.tabsettimer, container, false);
         btAddTimerWorkSpspButton = (Button) view.findViewById(R.id.AddTimerWorkSpspButton);
         btSetAlTimersCategoriesButton = (Button) view.findViewById(R.id.setAlTimersCategoriesButton);
+        btSaveLoadTimerWorkSpspButton= (ImageButton) view.findViewById(R.id.SaveLoadTimerWorkSpspButton);
         alTimersCategories = allData.getAlTimersCategories();
-     //   timeTextView = (TextView) view.findViewById(R.id.textView);
-        rxWear= new RxWear(container.getContext());
+        //   timeTextView = (TextView) view.findViewById(R.id.textView);
+        rxWear = new RxWear(container.getContext());
         rxWear.message().listen("/dataMap", MessageApi.FILTER_LITERAL)
                 .compose(MessageEventGetDataMap.noFilter())
                 .subscribe(dataMap -> {
                     // String title = dataMap.getString("title", getString(R.string.no_message));
-                    if  (dataMap.containsKey("alWearTimersCategories")) {
+                    if (dataMap.containsKey("alWearTimersCategories")) {
                         String json = dataMap.getString("alWearTimersCategories");
-                        alTimersCategories=  allData.convertStringToALTimerWorkspace(json);
+                        alTimersCategories = allData.convertStringToALTimerWorkspace(json);
                         allData.setAlTimersCategoriesFromWear(alTimersCategories);
-                        if (timerdataset.indata != null) {
-                            timerdataset.refreshInternalData(alTimersCategories.get( iActiveWorkSpaceindex).alTimersCategoryInWorkspace);
+                        if (indata != null) {
+                            timerdataset.refreshInternalData(alTimersCategories.get(iActiveWorkSpaceindex).alTimersCategoryInWorkspace);
                         }
-
-
 
 
                     }
@@ -91,14 +92,14 @@ public class TabSetTimerFragment extends Fragment implements TimePickerDialog.On
         for (TimerWorkspace z : alTimersCategories) {
             if (z.active) {
                 tmp.add("+ " + "id " + Integer.toString(z.id) + " " + z.name);
-                iActiveWorkSpaceindex =alTimersCategories.indexOf(z);
+                iActiveWorkSpaceindex = alTimersCategories.indexOf(z);
             } else {
                 tmp.add("- " + "id " + Integer.toString(z.id) + " " + z.name);
             }
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getContext(),
-                R.layout.tmr_wrk_spc_spinner_item  , R.id.texttmrwrk, tmp.toArray(new String[tmp.size()])); //android.R.layout.simple_spinner_item R.layout.tmr_wrk_spc_spinner_item
-      //  adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.tmr_wrk_spc_spinner_item, R.id.texttmrwrk, tmp.toArray(new String[tmp.size()])); //android.R.layout.simple_spinner_item R.layout.tmr_wrk_spc_spinner_item
+        //  adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
 //    TimerWorkspaceSpinnAdapter wrkspc_spinadapter = new TimerWorkspaceSpinnAdapter(this.getContext(),
 //            R.layout.tmr_wrk_spc_spinner_item  , alTimersCategories); //android.R.layout.simple_spinner_item R.layout.tmr_wrk_spc_spinner_item
@@ -110,11 +111,10 @@ public class TabSetTimerFragment extends Fragment implements TimePickerDialog.On
 
 
 //        set Spinner
-
-        btAddTimerWorkSpspButton.setOnClickListener(new View.OnClickListener() {
+        btSaveLoadTimerWorkSpspButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                 PopupMenu menu;
+                PopupMenu menu;
                 menu = new PopupMenu(v.getContext(), v);
                 try {
                     Field[] fields = menu.getClass().getDeclaredFields();
@@ -137,45 +137,128 @@ public class TabSetTimerFragment extends Fragment implements TimePickerDialog.On
                 menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId())  {
-                            case 1 : {
-                                if (SHOW_DEBUG)   Toast.makeText(v.getContext(), "Выбран пункт DELETE", Toast.LENGTH_LONG)
-                                        .show();
+                        switch (item.getItemId()) {
+                            case 1: {
+                                if (SHOW_DEBUG)
+                                    Toast.makeText(v.getContext(), "Выбран пункт DELETE", Toast.LENGTH_LONG)
+                                            .show();
 
                             }
-                                break;
+                            break;
 
-                            case 2 : {
+                            case 5: {
 //                    if (SHOW_DEBUG)   Toast.makeText(getContext(), "Выбран пункт CM_POISET_ID", Toast.LENGTH_LONG)
 //                            .show();
-                                if (SHOW_DEBUG) {
-                                    Toast.makeText(v.getContext(), "CM_POISET_ID POI>", Toast.LENGTH_SHORT).show();
-                                }
+
+
+                                TimersServiceUtils.saveTimerImageStringToExternalStorage(allData.convertALTimerWorkspace(alTimersCategories), TimersServiceUtils.FILE_EXT_ALLTimersDATA, v,null);
+
                             }
-                                break;
+                            break;
+                            case 6: {
+//                    if (SHOW_DEBUG)   Toast.makeText(getContext(), "Выбран пункт CM_POISET_ID", Toast.LENGTH_LONG)
+//                            .show();
+                                String tmpstr;
+
+                                tmpstr = TimersServiceUtils.loadTimerImageStringFromExternalStorage(TimersServiceUtils.FILE_EXT_ALLTimersDATA, v, text -> {
+                                    if ( text != null) {
+                                        alTimersCategories = allData.convertStringToALTimerWorkspace( text);
+                                        allData.setAlTimersCategoriesFromWear(alTimersCategories);
+                                        //Toast.makeText(v.getContext(),  text, Toast.LENGTH_SHORT).show();
+                                        if (indata != null) {
+                                            timerdataset.refreshInternalData(alTimersCategories.get(iActiveWorkSpaceindex).alTimersCategoryInWorkspace);
+                                        }
+                                    }
+                                });
+
+                            }
+                            break;
+                        }
+
+
+                        return false;
+                    }
+                });
+
+
+
+                menu.getMenu().add(0, 5, 0, "Save all timers to file")
+                        .setIcon(android.R.drawable.ic_menu_save);
+                //   .setOnMenuItemClickListener(this);
+                menu.getMenu().add(0, 6, 0, "Load all timers from file")
+                        .setIcon(android.R.drawable.ic_menu_upload);
+
+                menu.show();
+
+            }
+        });
+
+
+
+        btAddTimerWorkSpspButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu menu;
+                menu = new PopupMenu(v.getContext(), v);
+                try {
+                    Field[] fields = menu.getClass().getDeclaredFields();
+                    for (Field field : fields) {
+                        if ("mPopup".equals(field.getName())) {
+                            field.setAccessible(true);
+                            Object menuPopupHelper = field.get(menu);
+                            Class<?> classPopupHelper = Class.forName(menuPopupHelper
+                                    .getClass().getName());
+                            Method setForceIcons = classPopupHelper.getMethod(
+                                    "setForceShowIcon", boolean.class);
+                            setForceIcons.invoke(menuPopupHelper, true);
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case 1: {
+                                if (SHOW_DEBUG)
+                                    Toast.makeText(v.getContext(), "Выбран пункт DELETE", Toast.LENGTH_LONG)
+                                            .show();
+
+                            }
+                            break;
+
 
                         }
 
 
                         return false;
                     }
-                } );
+                });
                 menu.getMenu().add(0, 1, 0, R.string.menu_Delete)
                         .setIcon(R.drawable.ic_andr_cross);
-                       // .setOnMenuItemClickListener( );
+                // .setOnMenuItemClickListener( );
 
-                MenuItem myActionItem=menu.getMenu().add(0, 2, 0, R.string.menu_edit);
+                MenuItem myActionItem = menu.getMenu().add(0, 2, 0, R.string.menu_edit);
                 myActionItem.setIcon(android.R.drawable.ic_menu_myplaces);
-               // myActionItem.setOnMenuItemClickListener(this);
+                // myActionItem.setOnMenuItemClickListener(this);
 
 
-                menu.getMenu().add(0,  3, 0, R.string.menu_add)
+                menu.getMenu().add(0, 3, 0, R.string.menu_add)
                         .setIcon(android.R.drawable.sym_contact_card);
 
-                menu.getMenu().add(0,  4, 0, R.string.menu_active)
+                menu.getMenu().add(0, 4, 0, R.string.menu_active)
                         .setIcon(android.R.drawable.btn_star_big_on);
-                     //   .setOnMenuItemClickListener(this);
+                //   .setOnMenuItemClickListener(this);
+
+
+
                 menu.show();
+            }
+        });
+
 //                Calendar now = Calendar.getInstance();
 //                TimePickerDialog tpd = TimePickerDialog.newInstance(
 //                        TabSetTimerFragment.this,
@@ -198,17 +281,16 @@ public class TabSetTimerFragment extends Fragment implements TimePickerDialog.On
 //                    }
 //                });
 //                tpd.show(getActivity().getFragmentManager(), "Timepickerdialog");
-            }
-        });
+
 //        // TODO: 10.11.2016  move  Recycler to on view created  A 5.0 known bug
 //// Recycler
 
 
         recyclerview = (RecyclerView) view.findViewById(R.id.tmrrecyclerview);
 
-       recyclerview.setLayoutManager(new LinearLayoutManager( view.getContext(), LinearLayoutManager.VERTICAL, false));
+        recyclerview.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
 
-        timerdataset = new Tmr2lvlExpandableListAdapter(alTimersCategories.get( iActiveWorkSpaceindex).alTimersCategoryInWorkspace,iActiveWorkSpaceindex);
+        timerdataset = new Tmr2lvlExpandableListAdapter(alTimersCategories.get(iActiveWorkSpaceindex).alTimersCategoryInWorkspace, iActiveWorkSpaceindex);
         recyclerview.setAdapter(timerdataset);
 
 
@@ -217,17 +299,17 @@ public class TabSetTimerFragment extends Fragment implements TimePickerDialog.On
         btSetAlTimersCategoriesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                alTimersCategories.get(  timerdataset.currWorkSpace).alTimersCategoryInWorkspace= timerdataset.indata;
-                allData.setAlTimersCategories( alTimersCategories);
+                alTimersCategories.get(timerdataset.currWorkSpace).alTimersCategoryInWorkspace = indata;
+                allData.setAlTimersCategories(alTimersCategories);
 
             }
         });
 
 
-
         return view;
 
     }
+
 
 //    @Override
 //    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
