@@ -1,3 +1,18 @@
+
+Interactive LCD clock face inspired by motives of Electronica 52 all as in old kind times: chime hourly, alarm clock, stop watch, timer with many presets as is pomodoro, tabata
+
+  mobile part
+      -Multilevel db timer (pomodoro,DevFit in office, etc.)
+      - alarm clock set
+       - Exchange data with the wear
+     -in timers add save/load, create/edit
+   Wear part
+           - Multilevel db timer (pomodoro, office fitness, etc.)
+           - Transition in db on timers - key "Р’Р«Р‘РћР " in timer mode
+           - Change the character timer depending on the chosen
+           - Brief reference to the start of the next timer to signal the end of the current
+           -battery eat a bit less.
+           -Errror in enter timer select mode if timers not initialized from phone fixed
 1.7
 phone
 some UI changes
@@ -7,17 +22,17 @@ Ambient mode changes
 Errror in enter timer select mode if timers not initialized from phone fixed
 some energy economy fixes
 1.6
-Протестировано от 4.4 (KitKat) до 6 и 7
-Визуальные изменения
+РџСЂРѕС‚РµСЃС‚РёСЂРѕРІР°РЅРѕ РѕС‚ 4.4 (KitKat) РґРѕ 6 Рё 7
+Р’РёР·СѓР°Р»СЊРЅС‹Рµ РёР·РјРµРЅРµРЅРёСЏ
 1.5
-Добавлены 
- мобильная часть
-  -многоуровневая база таймеров (pomodoro, офис физкульт, и т.д.)
- -установка будильник
- - обмен данными с часами
-  Wear часть
-- многоуровневая база таймеров (pomodoro, офис физкульт, и т.д.)
-- переход по базе таймеров - клавиша "ВЫБОР"  в режиме таймера
-- изменение символа таймера в зависимости от выбранного
- - короткая ссылка на запуск следующего таймера в сигнале об окончании текущего 
- -повышена енергоеффективность всех режимов (батарею любит гораздо меньше).
+Р”РѕР±Р°РІР»РµРЅС‹ 
+ РјРѕР±РёР»СЊРЅР°СЏ С‡Р°СЃС‚СЊ
+  -РјРЅРѕРіРѕСѓСЂРѕРІРЅРµРІР°СЏ Р±Р°Р·Р° С‚Р°Р№РјРµСЂРѕРІ (pomodoro, РѕС„РёСЃ С„РёР·РєСѓР»СЊС‚, Рё С‚.Рґ.)
+ -СѓСЃС‚Р°РЅРѕРІРєР° Р±СѓРґРёР»СЊРЅРёРє
+ - РѕР±РјРµРЅ РґР°РЅРЅС‹РјРё СЃ С‡Р°СЃР°РјРё
+  Wear С‡Р°СЃС‚СЊ
+- РјРЅРѕРіРѕСѓСЂРѕРІРЅРµРІР°СЏ Р±Р°Р·Р° С‚Р°Р№РјРµСЂРѕРІ (pomodoro, РѕС„РёСЃ С„РёР·РєСѓР»СЊС‚, Рё С‚.Рґ.)
+- РїРµСЂРµС…РѕРґ РїРѕ Р±Р°Р·Рµ С‚Р°Р№РјРµСЂРѕРІ - РєР»Р°РІРёС€Р° "Р’Р«Р‘РћР "  РІ СЂРµР¶РёРјРµ С‚Р°Р№РјРµСЂР°
+- РёР·РјРµРЅРµРЅРёРµ СЃРёРјРІРѕР»Р° С‚Р°Р№РјРµСЂР° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РІС‹Р±СЂР°РЅРЅРѕРіРѕ
+ - РєРѕСЂРѕС‚РєР°СЏ СЃСЃС‹Р»РєР° РЅР° Р·Р°РїСѓСЃРє СЃР»РµРґСѓСЋС‰РµРіРѕ С‚Р°Р№РјРµСЂР° РІ СЃРёРіРЅР°Р»Рµ РѕР± РѕРєРѕРЅС‡Р°РЅРёРё С‚РµРєСѓС‰РµРіРѕ 
+ -РїРѕРІС‹С€РµРЅР° РµРЅРµСЂРіРѕРµС„С„РµРєС‚РёРІРЅРѕСЃС‚СЊ РІСЃРµС… СЂРµР¶РёРјРѕРІ (Р±Р°С‚Р°СЂРµСЋ Р»СЋР±РёС‚ РіРѕСЂР°Р·РґРѕ РјРµРЅСЊС€Рµ).
