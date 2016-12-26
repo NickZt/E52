@@ -1,18 +1,25 @@
+                                              Make it run, make it right, make it fast
 
-Interactive LCD clock face inspired by motives of Electronica 52 all as in old kind times: chime hourly, alarm clock, stop watch, timer with many presets as is pomodoro, tabata
 
-  mobile part
+  Interactive LCD clock face inspired by motives of Electronica 52 all as in old kind times: chime hourly, alarm clock, stop watch, timer with many presets as is pomodoro, tabata
+
+    mobile part
+    
       -Multilevel db timer (pomodoro,DevFit in office, etc.)
       - alarm clock set
        - Exchange data with the wear
      -in timers add save/load, create/edit
-   Wear part
+ 
+ Wear part
+    
            - Multilevel db timer (pomodoro, office fitness, etc.)
            - Transition in db on timers - key "ВЫБОР" in timer mode
            - Change the character timer depending on the chosen
            - Brief reference to the start of the next timer to signal the end of the current
            -battery eat a bit less.
            -Errror in enter timer select mode if timers not initialized from phone fixed
+
+
 1.7
 phone
 some UI changes
